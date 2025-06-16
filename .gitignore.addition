@@ -1,0 +1,52 @@
+# Environment variables
+.env
+
+# Database files
+*.db
+*.db-shm
+*.db-wal
+
+# Entity Framework migrations
+Migrations/
+
+# User-specific files
+*.user
+*.suo
+*.userprefs
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+
+# Visual Studio files
+.vs/
+.vscode/
+*.nupkg
+*.pfx
+*.snk
+
+# Rider files
+.idea/
+*.sln.iml
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
