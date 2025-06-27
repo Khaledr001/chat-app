@@ -1,5 +1,6 @@
 using Scalar.AspNetCore;
 using Microsoft.EntityFrameworkCore;
+using ChatApp.Server.Data;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,12 +10,10 @@ builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 
 // Configure database context based on environment
-var isDevelopment = builder.Environment.IsDevelopment();
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+builder.Services.AddDbContext<ChatAppDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
-if (isDevelopment)
-{
-}
-    
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -25,5 +24,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseAuthorization(); // Add this if you have [Authorize] attributes or plan to use authentication
+
+app.MapControllers(); // Map controller endpoints
 
 app.Run();
