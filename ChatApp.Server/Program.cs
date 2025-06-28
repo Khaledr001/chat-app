@@ -1,6 +1,8 @@
 using Scalar.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using ChatApp.Server.Data;
+using ChatApp.Server.Core.Interfaces;
+using ChatApp.Server.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +10,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
+
+// Register repositories
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 
 // Configure database context based on environment
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");

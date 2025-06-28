@@ -30,8 +30,12 @@ bld/
 [Ll]og/
 [Ll]ogs/
 
+# Migration Files
+Migrations/
+
 # Visual Studio 2015/2017 cache/options directory
 .vs/
+.vscode/
 
 # Visual Studio 2017 auto generated files
 Generated\ Files/

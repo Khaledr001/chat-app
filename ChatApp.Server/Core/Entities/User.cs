@@ -1,4 +1,4 @@
-namespace ChatApp.Server.Data
+namespace ChatApp.Server.Core.Entities
 {
     public class User
     {
@@ -6,6 +6,7 @@ namespace ChatApp.Server.Data
         public string UserName { get; set; } = string.Empty;
         public string Email { get; set; } = string.Empty;
         public string PasswordHash { get; set; } = string.Empty;
-        // Add more properties as needed
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime? UpdatedAt { get; set; }
     }
 }

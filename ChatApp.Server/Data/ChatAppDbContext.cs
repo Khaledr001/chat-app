@@ -1,3 +1,4 @@
+using ChatApp.Server.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace ChatApp.Server.Data
