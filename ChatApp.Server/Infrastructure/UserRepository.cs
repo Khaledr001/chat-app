@@ -16,6 +16,7 @@ namespace ChatApp.Server.Infrastructure
 
         public async Task<IEnumerable<User>> GetAllAsync()
         {
+            
             return await _context.Users.Select(u => new User
             {
                 Id = u.Id,

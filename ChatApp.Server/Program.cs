@@ -11,8 +11,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
 
-// Register repositories
+// Register repositories  
 builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IAuthRepository, AuthRepository>();
 
 // Configure database context based on environment
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
