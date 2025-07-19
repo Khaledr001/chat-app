@@ -2,6 +2,7 @@ using Scalar.AspNetCore;
 using Microsoft.EntityFrameworkCore;
 using ChatApp.Server.Data;
 using ChatApp.Server.Core.Interfaces;
+using ChatApp.Server.Hubs;
 using ChatApp.Server.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -10,6 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
 builder.Services.AddControllers();
+builder.Services.AddSignalR(); // Add SignalR services
 
 // Register repositories  
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -34,5 +36,8 @@ app.UseHttpsRedirection();
 app.UseAuthorization(); // Add this if you have [Authorize] attributes or plan to use authentication
 
 app.MapControllers(); // Map controller endpoints
+
+// Configure SignalR hub
+app.MapHub<ChatHub>("/chatHub"); // Add this line to map the ChatHub
 
 app.Run();
