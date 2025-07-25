@@ -6,12 +6,14 @@ public class ChatHub : Hub
 {
     public async Task SendMessage(string user, string message)
     {
+        Console.WriteLine($"{Context.ConnectionId} : {message} {Context.User}");
         await Clients.All.SendAsync("ReceiveMessage", user, message);
     }
 
     public override async Task OnConnectedAsync()
     {
-        await Clients.All.SendAsync("UserConnected", Context.ConnectionId);
+        Console.WriteLine("Chat Hub Started");
+        await Clients.All.SendAsync("UserConnected", SendMessage("1", "Hi"));
         await base.OnConnectedAsync();
     }
 

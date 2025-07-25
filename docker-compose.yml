@@ -1,0 +1,59 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: chatapp-postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=chatapp
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - chatapp-network
+
+  backend:
+    build:
+      context: .
+      dockerfile: ChatApp.Server/Dockerfile
+      target: dev
+    ports:
+      - "5153:5153"
+      - "7172:7172"
+    volumes:
+      - ./ChatApp.Server:/app/ChatApp.Server
+      - dotnet-packages:/root/.nuget/packages
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ConnectionStrings__DefaultConnection=Host=postgres;Database=chatapp;Username=postgres;Password=postgres
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DB=chatapp
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    depends_on:
+      - postgres
+    networks:
+      - chatapp-network
+
+  frontend:
+    build:
+      context: ./ChatApp.Client
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173" 
+    depends_on:
+      - backend
+    networks:
+      - chatapp-network
+
+networks:
+  chatapp-network:
+    driver: bridge
+
+volumes:
+  postgres-data:
+  dotnet-packages:

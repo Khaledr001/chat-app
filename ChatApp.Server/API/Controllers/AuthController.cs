@@ -1,6 +1,8 @@
 using ChatApp.Server.API.DTOs;
 using ChatApp.Server.Core.Interfaces;
+using ChatApp.Server.Hubs;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace ChatApp.Server.API.Controllers
 {
@@ -9,10 +11,12 @@ namespace ChatApp.Server.API.Controllers
     public class AuthController : ControllerBase
     {
         private readonly IAuthRepository _authRepository;
+        private readonly IHubContext<ChatHub> _chatHub;
 
-        public AuthController(IAuthRepository authRepository)
+        public AuthController(IAuthRepository authRepository, IHubContext<ChatHub> chatHub)
         {
             _authRepository = authRepository;
+            _chatHub = chatHub;
         }
 
         [HttpPost("register")]
@@ -34,6 +38,7 @@ namespace ChatApp.Server.API.Controllers
             try
             {
                 var loginResponse = await _authRepository.LoginAsync(loginDto);
+                await _chatHub.Clients.All.SendAsync("UserLoggedIn", loginResponse.UserName);
                 return Ok(loginResponse);
             }
             catch (Exception ex)
