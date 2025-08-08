@@ -6,6 +6,10 @@ import { ConfigService } from '@nestjs/config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  /**
+   * Global prefix for API routes
+   */
+  app.setGlobalPrefix('api');
 
   /**
    * Open API documentation setup
@@ -21,11 +25,6 @@ async function bootstrap() {
   // SwaggerModule.setup('api', app, document);
 
   app.use('/docs', apiReference({ content: document }));
-
-  /**
-   * Global prefix for API routes
-   */
-  app.setGlobalPrefix('api');
 
   /**
    * Get the configuration service to access environment variables
