@@ -1,5 +1,5 @@
 # Dependencies
-*/node_modules
+node_modules
 
 
 # Environment files
@@ -20,7 +20,6 @@ Thumbs.db
 
 # Nest.js specific
 */dist
-*/node_modules
 */build
 
 # React specific
