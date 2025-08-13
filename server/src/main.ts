@@ -3,34 +3,62 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
 import { ConfigService } from '@nestjs/config';
+import { NextFunction, Request, Response } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  /**
-   * Global prefix for API routes
-   */
-  app.setGlobalPrefix('api');
 
-  /**
-   * Open API documentation setup
-   */
-  const apiConfig = new DocumentBuilder()
-    .setTitle('Chat App API')
-    .setDescription('API documentation for the Chat App')
-    .setVersion('1.0')
-    .addBearerAuth()
-    .build();
-
-  const document = SwaggerModule.createDocument(app, apiConfig);
-  // SwaggerModule.setup('api', app, document);
-
-  app.use('/docs', apiReference({ content: document }));
-
+  // Enable CORS
+  app.enableCors({
+    origin:
+      process.env.NODE_ENV === 'production'
+        ? process.env.FRONTEND_URL
+        : 'http://localhost:5173',
+    credentials: true,
+  });
   /**
    * Get the configuration service to access environment variables
    */
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 3000;
+  const nodeEnv = configService.get<string>('NODE_ENV') || 'development';
+
+  /**
+   * Global prefix for API routes
+   */
+  app.setGlobalPrefix('api');
+
+  if (nodeEnv === 'development') {
+    /**
+     * Open API documentation setup
+     */
+    const apiConfig = new DocumentBuilder()
+      .setTitle('Chat App API')
+      .setDescription('API documentation for the Chat App')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
+
+    const document = SwaggerModule.createDocument(app, apiConfig);
+    // SwaggerModule.setup('api', app, document);
+
+    app.use('/docs', apiReference({ content: document }));
+
+    //LOG
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      res.on('finish', function () {
+        console.log(
+          req.method,
+          req.hostname,
+          req.path,
+          res.statusCode,
+          res.statusMessage,
+          new Date(Date.now()).toString(),
+        );
+      });
+      next();
+    });
+  }
 
   await app.listen(port);
 
