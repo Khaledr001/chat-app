@@ -18,19 +18,21 @@ export class UserController {
 
   @Post()
   @ApiOperation({ summary: 'Create a new user' })
-  create(@Body() createUserDto: CreateUserDto): Promise<User> {
+  create(
+    @Body() createUserDto: CreateUserDto,
+  ): Promise<Omit<User, 'password'>> {
     return this.userService.create(createUserDto);
   }
 
   @Get()
   @ApiOperation({ summary: 'Get all users' })
-  findAll(): Promise<User[]> {
+  findAll(): Promise<Omit<User, 'password'>[]> {
     return this.userService.findAll();
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get a user by id' })
-  findOne(@Param('id') id: string): Promise<User> {
+  findOne(@Param('id') id: string): Promise<Omit<User, 'password'>> {
     return this.userService.findOne(+id);
   }
 

@@ -3,17 +3,13 @@ import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
 import { ConfigService } from '@nestjs/config';
-import { NextFunction, Request, Response } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Enable CORS
   app.enableCors({
-    origin:
-      process.env.NODE_ENV === 'production'
-        ? process.env.FRONTEND_URL
-        : 'http://localhost:5173',
+    origin: '*',
     credentials: true,
   });
   /**
@@ -43,21 +39,6 @@ async function bootstrap() {
     // SwaggerModule.setup('api', app, document);
 
     app.use('/docs', apiReference({ content: document }));
-
-    //LOG
-    app.use((req: Request, res: Response, next: NextFunction) => {
-      res.on('finish', function () {
-        console.log(
-          req.method,
-          req.hostname,
-          req.path,
-          res.statusCode,
-          res.statusMessage,
-          new Date(Date.now()).toString(),
-        );
-      });
-      next();
-    });
   }
 
   await app.listen(port);

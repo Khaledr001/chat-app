@@ -2,12 +2,13 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  UnauthorizedException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from './user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
-import { hash } from 'bcrypt';
+import { compare, hash } from 'bcrypt';
 
 @Injectable()
 export class UserService {
@@ -16,13 +17,22 @@ export class UserService {
     private userRepository: Repository<User>,
   ) {}
 
-  async create(createUserDto: CreateUserDto): Promise<User> {
+  async create(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
     const existingUser = await this.userRepository.findOne({
       where: { email: createUserDto.email },
     });
 
     if (existingUser) {
       throw new ConflictException('Email already exists');
+    }
+
+    // Check for existing username
+    const existingUsername = await this.userRepository.findOne({
+      where: { userName: createUserDto.userName },
+    });
+
+    if (existingUsername) {
+      throw new ConflictException('Username already exists');
     }
 
     const hashedPassword = await hash(createUserDto.password, 10);
@@ -32,19 +42,30 @@ export class UserService {
       password: hashedPassword,
     });
 
-    return this.userRepository.save(user);
+    const newUser = await this.userRepository.save(user);
+
+    const { password: _, ...safeUser } = newUser;
+
+    return safeUser;
   }
 
-  async findAll(): Promise<User[]> {
-    return this.userRepository.find({
-      select: ['id', 'name', 'email', 'createdAt', 'updatedAt'],
+  async findAll(): Promise<Omit<User, 'password'>[]> {
+    const allUser = await this.userRepository.find({
+      select: ['id', 'name', 'userName', 'email', 'createdAt', 'updatedAt'],
     });
+
+    return allUser;
   }
 
-  async findOne(id: number): Promise<User> {
+  async findOne(
+    id?: number,
+    userName?: string,
+  ): Promise<Omit<User, 'password'>> {
+    const whereClause = userName ? { userName } : { id };
+    console.log(whereClause);
     const user = await this.userRepository.findOne({
-      where: { id },
-      select: ['id', 'name', 'email', 'createdAt', 'updatedAt'],
+      where: whereClause,
+      select: ['id', 'name', 'userName', 'email', 'createdAt', 'updatedAt'],
     });
 
     if (!user) {
@@ -81,7 +102,7 @@ export class UserService {
     Object.assign(user, updateUserDto);
     user.updatedAt = new Date();
 
-    return this.userRepository.save(user);
+    return await this.userRepository.save(user);
   }
 
   async remove(id: number): Promise<void> {
@@ -90,5 +111,27 @@ export class UserService {
     if (result.affected === 0) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
+  }
+
+  async checkCredentials(
+    userName: string,
+    password: string,
+  ): Promise<Omit<User, 'password'>> {
+    let user = await this.userRepository.findOne({
+      where: { userName },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const isPasswordValid = await compare(password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+
+    const { password: _, ...safeUser } = user;
+
+    return safeUser;
   }
 }

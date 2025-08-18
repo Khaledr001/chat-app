@@ -6,6 +6,9 @@ import { configaration } from './config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserModule } from './user/user.module';
 import { ChatModule } from './chat/chat.module';
+import { AuthModule } from './auth/auth.module';
+import { APP_INTERCEPTOR } from '@nestjs/core';
+import { LoggerInterceptor } from './interceptors/api.logger.interceptor';
 
 @Module({
   imports: [
@@ -36,8 +39,13 @@ import { ChatModule } from './chat/chat.module';
     // Import other modules here
     UserModule,
     ChatModule,
+    AuthModule,
   ],
   controllers: [AppController],
-  providers: [AppService, ConfigService],
+  providers: [
+    AppService,
+    ConfigService,
+    { provide: APP_INTERCEPTOR, useClass: LoggerInterceptor },
+  ],
 })
 export class AppModule {}
