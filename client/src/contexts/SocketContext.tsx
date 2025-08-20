@@ -35,10 +35,21 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [activeUsers, setActiveUsers] = useState<string[]>([]);
 
   useEffect(() => {
+    // Get the current user from your auth system
+    const currentUser = {
+      id: 1, // Replace with actual user ID from your auth system
+      name: "Current User", // Replace with actual user name
+    };
+
     const newSocket = io("http://localhost:3100");
 
     newSocket.on("connect", () => {
       setIsConnected(true);
+      // Join with user info when connected
+      newSocket.emit("join", {
+        userId: currentUser.id,
+        username: currentUser.name,
+      });
       showToast("Connected to chat server", "success");
     });
 
@@ -47,8 +58,8 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
       showToast("Disconnected from chat server", "error");
     });
 
-    newSocket.on("activeUsers", (users: string[]) => {
-      setActiveUsers(users);
+    newSocket.on("activeUsers", (users: number[]) => {
+      setActiveUsers(users.map(String));
     });
 
     setSocket(newSocket);

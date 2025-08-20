@@ -9,6 +9,7 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
+import { ChatService } from './chat.service';
 
 @WebSocketGateway({
   cors: {
@@ -20,7 +21,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   server: Server;
 
   private logger: Logger = new Logger('ChatGateway');
-  private activeUsers: Map<string, string> = new Map(); // socketId -> userId
+  private activeUsers: Map<string, number> = new Map(); // socketId -> userId
+
+  constructor(private chatService: ChatService) {}
 
   // Handle connection
   handleConnection(@ConnectedSocket() client: Socket) {
@@ -39,14 +42,14 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   // Handle user joining
   @SubscribeMessage('join')
-  handleJoin(
+  async handleJoin(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { userId: string; username: string },
+    @MessageBody() data: { userId: number; username: string },
   ) {
     this.activeUsers.set(client.id, data.userId);
 
     // Join a room with their userId for private messages
-    client.join(data.userId);
+    await client.join(data.userId.toString());
 
     // Notify others that new user has joined
     client.broadcast.emit('userOnline', {
@@ -61,31 +64,71 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     return { status: 'ok' };
   }
 
+  // Get conversation history
+  @SubscribeMessage('getConversation')
+  async handleGetConversation(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { otherUserId: number },
+  ) {
+    const userId = this.activeUsers.get(client.id);
+    if (!userId) {
+      return { status: 'error', message: 'User not authenticated' };
+    }
+
+    try {
+      const messages = await this.chatService.getConversation(
+        userId,
+        data.otherUserId,
+      );
+      return { status: 'ok', messages };
+    } catch (error) {
+      this.logger.error('Error fetching conversation:', error);
+      return { status: 'error', message: 'Failed to fetch conversation' };
+    }
+  }
+
   // Handle private messages
   @SubscribeMessage('privateMessage')
-  handlePrivateMessage(
+  async handlePrivateMessage(
     @ConnectedSocket() client: Socket,
     @MessageBody()
     data: {
-      to: string;
+      to: number;
       content: string;
-      from: string;
     },
   ) {
-    const message = {
-      content: data.content,
-      from: data.from,
-      to: data.to,
-      timestamp: new Date(),
-    };
+    const senderId = this.activeUsers.get(client.id);
+    if (!senderId) {
+      return { status: 'error', message: 'User not authenticated' };
+    }
 
-    // Send to recipient
-    this.server.to(data.to).emit('privateMessage', message);
+    try {
+      const message = await this.chatService.createMessage(
+        senderId,
+        data.to,
+        data.content,
+      );
 
-    // Send back to sender
-    client.emit('privateMessage', message);
+      const messagePayload = {
+        id: message.id,
+        content: message.content,
+        from: senderId,
+        to: data.to,
+        timestamp: message.timestamp,
+        isRead: message.isRead,
+      };
 
-    return { status: 'ok' };
+      // Send to recipient
+      this.server.to(data.to.toString()).emit('privateMessage', messagePayload);
+
+      // Send back to sender
+      client.emit('privateMessage', messagePayload);
+
+      return { status: 'ok', message };
+    } catch (error: any) {
+      this.logger.error(`Error sending message: ${error.message}`);
+      return { status: 'error', message: 'Failed to send message' };
+    }
   }
 
   // Handle typing status
