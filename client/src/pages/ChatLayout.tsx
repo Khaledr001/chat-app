@@ -1,5 +1,5 @@
-import { Sidebar } from "./Sidebar";
-import { ChatArea } from "./ChatArea";
+import { Sidebar } from "../components/chat/Sidebar";
+import { ChatArea } from "../components/chat/ChatArea";
 
 export const ChatLayout = () => {
   return (

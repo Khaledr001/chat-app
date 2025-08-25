@@ -1,5 +1,6 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useContext, useState, useEffect } from "react";
 import { io, Socket } from "socket.io-client";
+import { useAuth } from "./AuthContext";
 
 interface SocketContextType {
   socket: Socket | null;
@@ -33,22 +34,21 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [activeUsers, setActiveUsers] = useState<string[]>([]);
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
-    // Get the current user from your auth system
-    const currentUser = {
-      id: 1, // Replace with actual user ID from your auth system
-      name: "Current User", // Replace with actual user name
-    };
+    if (!isAuthenticated || !user) return;
 
-    const newSocket = io("http://localhost:3100");
+    const newSocket = io("http://localhost:3100", {
+      withCredentials: true,
+    });
 
     newSocket.on("connect", () => {
       setIsConnected(true);
       // Join with user info when connected
       newSocket.emit("join", {
-        userId: currentUser.id,
-        username: currentUser.name,
+        userId: user?.id,
+        username: user?.name,
       });
       showToast("Connected to chat server", "success");
     });
@@ -67,7 +67,7 @@ export const SocketProvider = ({ children }: { children: React.ReactNode }) => {
     return () => {
       newSocket.close();
     };
-  }, []);
+  }, [isAuthenticated, user]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected, activeUsers }}>

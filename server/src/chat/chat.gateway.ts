@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -13,21 +14,25 @@ import { ChatService } from './chat.service';
 
 @WebSocketGateway({
   cors: {
-    origin: '*', // In production, replace with your frontend URL
+    origin: 'http://localhost:5173', // In production, replace with your frontend URL
+    methods: ['GET', 'POST'],
+    credentials: true, // Allow credentials to be sent with requests
   },
 })
 export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  private logger: Logger = new Logger('ChatGateway');
   private activeUsers: Map<string, number> = new Map(); // socketId -> userId
+  private logger: Logger = new Logger('ChatGateway');
 
   constructor(private chatService: ChatService) {}
 
   // Handle connection
   handleConnection(@ConnectedSocket() client: Socket) {
     this.logger.log(`Client connected: ${client.id}`);
+    const activeUsersList = Array.from(this.activeUsers.values());
+    this.logger.log(`Active users: ${activeUsersList.join(', ')}`);
   }
 
   // Handle disconnection
@@ -98,6 +103,9 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     },
   ) {
     const senderId = this.activeUsers.get(client.id);
+    this.logger.log(
+      `Private message from ${senderId} to ${data.to}: ${data.content}`,
+    );
     if (!senderId) {
       return { status: 'error', message: 'User not authenticated' };
     }
