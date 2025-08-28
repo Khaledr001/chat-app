@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 import {
   Body,
   Controller,
@@ -38,6 +36,13 @@ export class AuthController {
 
     req.user = user_token.user;
 
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      maxAge: 24 * 60 * 60 * 1000, // 24 hours
+    };
+    res.cookie('jwt', user_token.token, cookieOptions);
+
     return res.status(HttpStatus.OK).json({
       message: 'Login successful',
       user: user_token.user,
@@ -72,17 +77,17 @@ export class AuthController {
   @ApiOperation({ summary: 'Verify user token' })
   async verifyToken(@Req() req: Request, @Res() res: Response) {
     try {
-      let authHeader = req.headers.authorization || req.headers.Authorization;
+      let token = req.headers.authorization || req.headers.Authorization;
+      if (!token || token == undefined) {
+        token = req.headers.cookie;
+        if (typeof token === 'string' && token.includes('jwt=')) {
+          token = token.split('jwt=')[1].trim();
+        }
+      } else token = token.toString().split('Bearer')[1].trim();
 
-      if (!authHeader || !authHeader.toString().startsWith('Bearer ')) {
-        authHeader = req.headers.cookie;
-      }
-
-      if (!authHeader || !authHeader.toString().startsWith('Bearer ')) {
+      if (!token) {
         throw new UnauthorizedException('No token provided');
       }
-
-      const token = authHeader.toString().split(' ')[1];
       const user = await this.authService.verifyToken(token);
 
       req.user = user;

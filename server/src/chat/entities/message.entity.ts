@@ -1,37 +1,23 @@
-import {
-  Entity,
-  Column,
-  PrimaryGeneratedColumn,
-  ManyToOne,
-  JoinColumn,
-} from 'typeorm';
-import { User } from '../../user/user.entity';
+import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { Document, Schema as MongooseSchema } from 'mongoose';
+import { User } from 'src/database/schemas/user.schema';
 
-@Entity()
-export class Message {
-  @PrimaryGeneratedColumn()
-  id: number;
-
-  @Column('text')
+@Schema({ timestamps: true })
+export class Message extends Document {
+  @Prop({ required: true, type: String })
   content: string;
 
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'senderId' })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   sender: User;
 
-  @Column()
-  senderId: number;
-
-  @ManyToOne(() => User)
-  @JoinColumn({ name: 'receiverId' })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'User', required: true })
   receiver: User;
 
-  @Column()
-  receiverId: number;
-
-  @Column({ default: false })
+  @Prop({ default: false })
   isRead: boolean;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Prop({ default: Date.now })
   timestamp: Date;
 }
+
+export const MessageSchema = SchemaFactory.createForClass(Message);

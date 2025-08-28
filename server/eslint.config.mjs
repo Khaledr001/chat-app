@@ -20,18 +20,21 @@ export default tseslint.config(
       sourceType: 'commonjs',
       parserOptions: {
         projectService: true,
+        // @ts-ignore
         tsconfigRootDir: import.meta.dirname,
       },
     },
   },
   {
     rules: {
+      'prettier/prettier': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',
       '@typescript-eslint/no-unsafe-argument': 'off',
       'prefer-const': 'warn',
       '@typescript-eslint/no-unsafe-member-access': 'off',
       '@typescript-eslint/no-unsafe-assignment': 'off',
+      '@typescript-eslint/no-unused-vars' : 'warn',
     },
   },
 );

@@ -11,6 +11,9 @@ import {
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
 import { ChatService } from './chat.service';
+import { Types } from 'mongoose';
+import { Message } from './entities/message.entity';
+import { MessagePayload } from './interfaces/message.interface';
 
 @WebSocketGateway({
   cors: {
@@ -23,7 +26,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
-  private activeUsers: Map<string, number> = new Map(); // socketId -> userId
+  private activeUsers: Map<string, Types.ObjectId> = new Map(); // socketId -> userId
   private logger: Logger = new Logger('ChatGateway');
 
   constructor(private chatService: ChatService) {}
@@ -49,21 +52,24 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('join')
   async handleJoin(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { userId: number; username: string },
+    @MessageBody() data: { userId: string; username: string },
   ) {
-    this.activeUsers.set(client.id, data.userId);
+    const userId = new Types.ObjectId(data.userId);
+    this.activeUsers.set(client.id, userId);
 
     // Join a room with their userId for private messages
-    await client.join(data.userId.toString());
+    await client.join(userId.toString());
 
     // Notify others that new user has joined
     client.broadcast.emit('userOnline', {
-      userId: data.userId,
+      userId: userId.toString(),
       username: data.username,
     });
 
     // Send currently active users to the newly joined user
-    const activeUsersList = Array.from(this.activeUsers.values());
+    const activeUsersList = Array.from(this.activeUsers.values()).map((id) =>
+      id.toString(),
+    );
     client.emit('activeUsers', activeUsersList);
 
     return { status: 'ok' };
@@ -73,7 +79,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @SubscribeMessage('getConversation')
   async handleGetConversation(
     @ConnectedSocket() client: Socket,
-    @MessageBody() data: { otherUserId: number },
+    @MessageBody() data: { otherUserId: string },
   ) {
     const userId = this.activeUsers.get(client.id);
     if (!userId) {
@@ -81,11 +87,31 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
 
     try {
+      const otherUserId = new Types.ObjectId(data.otherUserId);
       const messages = await this.chatService.getConversation(
         userId,
-        data.otherUserId,
+        otherUserId,
       );
-      return { status: 'ok', messages };
+
+      const transformedMessages = messages.map(
+        (msg: Message & { _id: Types.ObjectId }) => ({
+          id: msg._id.toString(),
+          content: msg.content,
+          sender: (
+            msg.sender as unknown as { _id: Types.ObjectId }
+          )._id.toString(),
+          receiver: (
+            msg.receiver as unknown as { _id: Types.ObjectId }
+          )._id.toString(),
+          timestamp: msg.timestamp,
+          isRead: msg.isRead,
+        }),
+      );
+
+      return {
+        status: 'ok',
+        messages: transformedMessages,
+      };
     } catch (error) {
       this.logger.error('Error fetching conversation:', error);
       return { status: 'error', message: 'Failed to fetch conversation' };
@@ -98,41 +124,45 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @ConnectedSocket() client: Socket,
     @MessageBody()
     data: {
-      to: number;
+      to: string;
       content: string;
     },
   ) {
     const senderId = this.activeUsers.get(client.id);
-    this.logger.log(
-      `Private message from ${senderId} to ${data.to}: ${data.content}`,
-    );
     if (!senderId) {
       return { status: 'error', message: 'User not authenticated' };
     }
 
     try {
-      const message = await this.chatService.createMessage(
-        senderId,
-        data.to,
-        data.content,
+      const receiverId = new Types.ObjectId(data.to);
+      this.logger.log(
+        `Private message from ${senderId.toString()} to ${receiverId.toString()}: ${data.content}`,
       );
 
-      const messagePayload = {
-        id: message.id,
+      const message = (await this.chatService.createMessage(
+        senderId,
+        receiverId,
+        data.content,
+      )) as Message & { _id: Types.ObjectId };
+
+      const messagePayload: MessagePayload = {
+        id: message._id.toString(),
         content: message.content,
-        from: senderId,
-        to: data.to,
+        from: senderId.toString(),
+        to: receiverId.toString(),
         timestamp: message.timestamp,
         isRead: message.isRead,
       };
 
       // Send to recipient
-      this.server.to(data.to.toString()).emit('privateMessage', messagePayload);
+      this.server
+        .to(receiverId.toString())
+        .emit('privateMessage', messagePayload);
 
       // Send back to sender
       client.emit('privateMessage', messagePayload);
 
-      return { status: 'ok', message };
+      return { status: 'ok', message: messagePayload };
     } catch (error: any) {
       this.logger.error(`Error sending message: ${error.message}`);
       return { status: 'error', message: 'Failed to send message' };
@@ -146,22 +176,30 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
     @MessageBody() data: { to: string; isTyping: boolean },
   ) {
     const userId = this.activeUsers.get(client.id);
-    this.server.to(data.to).emit('userTyping', {
-      userId,
+    if (!userId) return;
+
+    const receiverId = new Types.ObjectId(data.to);
+    this.server.to(receiverId.toString()).emit('userTyping', {
+      userId: userId.toString(),
       isTyping: data.isTyping,
     });
   }
 
   // Handle message read status
   @SubscribeMessage('messageRead')
-  handleMessageRead(
+  async handleMessageRead(
     @ConnectedSocket() client: Socket,
     @MessageBody() data: { messageId: string; userId: string },
   ) {
     const userId = this.activeUsers.get(client.id);
-    this.server.to(data.userId).emit('messageRead', {
+    if (!userId) return;
+
+    const receiverId = new Types.ObjectId(data.userId);
+    await this.chatService.markMessagesAsRead(userId, receiverId);
+
+    this.server.to(receiverId.toString()).emit('messageRead', {
       messageId: data.messageId,
-      readBy: userId,
+      readBy: userId.toString(),
     });
   }
 }

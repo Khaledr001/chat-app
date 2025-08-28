@@ -4,22 +4,26 @@ import {
   ConflictException,
   UnauthorizedException,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
-import { User } from './user.entity';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
 import { compare, hash } from 'bcrypt';
+import {
+  User,
+  USER_MODEL_NAME,
+  UserDocument,
+} from 'src/database/schemas/user.schema';
 
 @Injectable()
 export class UserService {
   constructor(
-    @InjectRepository(User)
-    private userRepository: Repository<User>,
+    @InjectModel(USER_MODEL_NAME)
+    private readonly userModel: Model<UserDocument>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
-    const existingUser = await this.userRepository.findOne({
-      where: { email: createUserDto.email },
+    const existingUser = await this.userModel.findOne({
+      email: createUserDto.email,
     });
 
     if (existingUser) {
@@ -27,8 +31,8 @@ export class UserService {
     }
 
     // Check for existing username
-    const existingUsername = await this.userRepository.findOne({
-      where: { userName: createUserDto.userName },
+    const existingUsername = await this.userModel.findOne({
+      userName: createUserDto.userName,
     });
 
     if (existingUsername) {
@@ -37,49 +41,50 @@ export class UserService {
 
     const hashedPassword = await hash(createUserDto.password, 10);
 
-    const user = this.userRepository.create({
+    const user = new this.userModel({
       ...createUserDto,
       password: hashedPassword,
     });
 
-    const newUser = await this.userRepository.save(user);
+    const newUser = await user.save();
 
-    const { password: _, ...safeUser } = newUser;
-
-    return safeUser;
+    return newUser;
   }
 
   async findAll(): Promise<Omit<User, 'password'>[]> {
-    const allUser = await this.userRepository.find({
-      select: ['id', 'name', 'userName', 'email', 'createdAt', 'updatedAt'],
-    });
+    const users = await this.userModel.find().select('-password').lean().exec();
 
-    return allUser;
+    return users;
   }
 
   async findOne(
-    id?: number,
+    id?: string,
     userName?: string,
   ): Promise<Omit<User, 'password'>> {
-    const whereClause = userName ? { userName } : { id };
-    console.log(whereClause);
-    const user = await this.userRepository.findOne({
-      where: whereClause,
-      select: ['id', 'name', 'userName', 'email', 'createdAt', 'updatedAt'],
-    });
+    try {
+      const query = userName ? { userName } : { _id: id };
+      const user = await this.userModel
+        .findOne(query)
+        .select('-password')
+        .lean()
+        .exec();
 
-    if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      if (!user) {
+        throw new NotFoundException(`User ${userName || id} not found`);
+      }
+
+      return user;
     }
-
-    return user;
+    catch (error: any) {
+      throw error;
+    }
   }
 
   async update(
-    id: number,
+    id: string,
     updateUserDto: Partial<CreateUserDto>,
   ): Promise<User> {
-    const user = await this.userRepository.findOne({ where: { id } });
+    const user = await this.userModel.findById(id);
 
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
@@ -90,8 +95,8 @@ export class UserService {
     }
 
     if (updateUserDto.email && updateUserDto.email !== user.email) {
-      const existingUser = await this.userRepository.findOne({
-        where: { email: updateUserDto.email },
+      const existingUser = await this.userModel.findOne({
+        email: updateUserDto.email,
       });
 
       if (existingUser) {
@@ -100,15 +105,13 @@ export class UserService {
     }
 
     Object.assign(user, updateUserDto);
-    user.updatedAt = new Date();
-
-    return await this.userRepository.save(user);
+    return await user.save();
   }
 
-  async remove(id: number): Promise<void> {
-    const result = await this.userRepository.delete(id);
+  async remove(id: string): Promise<void> {
+    const result = await this.userModel.findByIdAndDelete(id);
 
-    if (result.affected === 0) {
+    if (!result) {
       throw new NotFoundException(`User with ID ${id} not found`);
     }
   }
@@ -117,9 +120,9 @@ export class UserService {
     userName: string,
     password: string,
   ): Promise<Omit<User, 'password'>> {
-    let user = await this.userRepository.findOne({
-      where: { userName },
-    });
+    // select all including password
+
+    const user = await this.userModel.findOne({ userName }).select('+password').lean();
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
@@ -129,9 +132,9 @@ export class UserService {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-
+    // Exclude password before returning
     const { password: _, ...safeUser } = user;
 
-    return safeUser;
+    return safeUser as any as Omit<User, 'password'>;
   }
 }

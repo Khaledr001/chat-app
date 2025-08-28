@@ -1,55 +1,58 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model, Types } from 'mongoose';
 import { Message } from './entities/message.entity';
 
 @Injectable()
 export class ChatService {
   constructor(
-    @InjectRepository(Message)
-    private messageRepository: Repository<Message>,
+    @InjectModel(Message.name)
+    private messageModel: Model<Message>,
   ) {}
 
   async createMessage(
-    senderId: number,
-    receiverId: number,
+    senderId: Types.ObjectId,
+    receiverId: Types.ObjectId,
     content: string,
   ): Promise<Message> {
-    const message = this.messageRepository.create({
-      senderId,
-      receiverId,
+    const message = new this.messageModel({
+      sender: senderId,
+      receiver: receiverId,
       content,
     });
-    return await this.messageRepository.save(message);
+    return await message.save();
   }
 
   async getConversation(
-    user1Id: number,
-    user2Id: number,
+    user1Id: Types.ObjectId,
+    user2Id: Types.ObjectId,
     limit: number = 50,
   ): Promise<Message[]> {
-    return await this.messageRepository.find({
-      where: [
-        { senderId: user1Id, receiverId: user2Id },
-        { senderId: user2Id, receiverId: user1Id },
-      ],
-      order: { timestamp: 'DESC' },
-      take: limit,
-      relations: ['sender', 'receiver'],
-    });
+    return await this.messageModel
+      .find({
+        $or: [
+          { sender: user1Id, receiver: user2Id },
+          { sender: user2Id, receiver: user1Id },
+        ],
+      })
+      .sort({ timestamp: -1 })
+      .limit(limit)
+      .populate('sender')
+      .populate('receiver')
+      .exec();
   }
 
   async markMessagesAsRead(
-    senderId: number,
-    receiverId: number,
+    senderId: Types.ObjectId,
+    receiverId: Types.ObjectId,
   ): Promise<void> {
-    await this.messageRepository.update(
+    await this.messageModel.updateMany(
       {
-        senderId,
-        receiverId,
+        sender: senderId,
+        receiver: receiverId,
         isRead: false,
       },
-      { isRead: true },
+      { $set: { isRead: true } },
     );
   }
 }

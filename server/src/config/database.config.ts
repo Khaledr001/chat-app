@@ -10,4 +10,10 @@ const PSQL_CONFIG = registerAs('PSQL_CONFIG', () => {
   };
 });
 
-export { PSQL_CONFIG };
+const MONGODB_CONFIG = registerAs('MONGODB_CONFIG', () => {
+  return {
+    uri: process.env.MONGODB_URI || 'mongodb://localhost:27017/chatapp',
+  };
+});
+
+export { PSQL_CONFIG, MONGODB_CONFIG };
