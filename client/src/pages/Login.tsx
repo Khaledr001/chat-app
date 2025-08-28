@@ -26,8 +26,8 @@ export const Login = () => {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-950 to-blue-900 px-4 py-8">
-      <div className="bg-gray-800/90 backdrop-blur-md p-10 rounded-2xl shadow-2xl w-full max-w-md border border-gray-700">
-        <h2 className="text-3xl font-extrabold text-white mb-8 text-center tracking-tight">
+      <div className="bg-gray-800/90 backdrop-blur-md p-10 rounded-2xl shadow-2xl w-full min-h-[450px] max-w-md border border-gray-700 flex flex-col justify-center gap-4">
+        <h2 className="text-3xl font-extrabold text-white !mb-8 text-center tracking-tight">
           Login
         </h2>
         {error && (
@@ -35,47 +35,79 @@ export const Login = () => {
             {error}
           </div>
         )}
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-sm font-semibold text-gray-300 mb-2 ml-1">
-              User Name
-            </label>
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col items-center justify-center gap-7 !p-5">
+          <label
+            htmlFor="email"
+            className="floating-label !px-2 input input-lg input-info w-full validator">
+            <span> User Name </span>
+            <svg
+              className="h-[1em] opacity-50"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24">
+              <g
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                strokeWidth="2.5"
+                fill="none"
+                stroke="currentColor">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+              </g>
+            </svg>
             <input
               id="email"
               type="username"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-700/80 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition placeholder-gray-400"
+              // className="input input-lg input-info"
               placeholder="Enter your username"
+              // pattern="[A-Za-z][A-Za-z0-9\-!@]*"
+              minLength={3}
+              maxLength={30}
+              title="Minimum 3 characters, maximum 30 characters"
               required
             />
-          </div>
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-sm font-semibold text-gray-300 mb-2 ml-1">
-              Password
-            </label>
+          </label>
+
+          <label
+            htmlFor="password"
+            className="floating-label !px-2 input input-lg w-full input-info">
+            <span>Password</span>
+            <svg
+              className="h-[1em] opacity-50"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24">
+              <g
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                strokeWidth="2.5"
+                fill="none"
+                stroke="currentColor">
+                <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"></path>
+                <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"></circle>
+              </g>
+            </svg>
             <input
               id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-gray-700/80 text-white rounded-lg border border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition placeholder-gray-400"
+              // className="input input-lg input-info"
               placeholder="Enter your password"
               required
             />
-          </div>
+          </label>
+
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full bg-gradient-to-r from-blue-600 to-blue-500 text-white py-3 rounded-lg font-semibold text-lg shadow-md hover:from-blue-700 hover:to-blue-600 transition-colors disabled:opacity-60 disabled:cursor-not-allowed mt-2">
+            className="btn btn-secondary btn-lg btn-block mt-2">
             {isLoading ? "Loading..." : "Login"}
           </button>
         </form>
-        <p className="mt-8 text-center text-gray-400 text-sm">
+        <p className="mt-8 text-center text-gray-400 text-md">
           Don't have an account?{" "}
           <Link
             to="/signup"

@@ -1,15 +1,22 @@
-import { Sidebar } from "../components/chat/Sidebar";
-import { ChatArea } from "../components/chat/ChatArea";
+import { LeftSidebar } from "../components/chat/LeftSidebar";
+import { useState } from "react";
+import RightSidebar from "../components/chat/RightSidebar";
+import { ChatWindow } from "../components/chat/ChatArea";
 
-export const ChatLayout = () => {
+export const ChatLayout: React.FC = () => {
+  const [showDetails, setShowDetails] = useState<boolean>(true);
+
   return (
-    <div className="grid h-screen grid-cols-1 md:grid-cols-[320px_1fr]">
-      <div className="bg-gray-800/95 border-r border-gray-700/80 shadow-xl">
-        <Sidebar />
-      </div>
-      <div className="bg-gray-900/95">
-        <ChatArea />
-      </div>
+    <div className="flex h-screen bg-base-200">
+      {/* Left Sidebar - Chat List */}
+
+      <LeftSidebar />
+
+      {/* Middle - Chat Window */}
+      <ChatWindow />
+
+      {/* Right Sidebar - Details */}
+      {showDetails && <RightSidebar />}
     </div>
   );
 };
