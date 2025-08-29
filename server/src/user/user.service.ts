@@ -54,30 +54,25 @@ export class UserService {
   async findAll(): Promise<Omit<User, 'password'>[]> {
     const users = await this.userModel.find().select('-password').lean().exec();
 
-    return users;
+    return users as any as Omit<User, 'password'>[];
   }
 
   async findOne(
     id?: string,
     userName?: string,
   ): Promise<Omit<User, 'password'>> {
-    try {
-      const query = userName ? { userName } : { _id: id };
-      const user = await this.userModel
-        .findOne(query)
-        .select('-password')
-        .lean()
-        .exec();
+    const query = userName ? { userName } : { _id: id };
+    const user = await this.userModel
+      .findOne(query)
+      .select('-password')
+      .lean()
+      .exec();
 
-      if (!user) {
-        throw new NotFoundException(`User ${userName || id} not found`);
-      }
+    if (!user) {
+      throw new NotFoundException(`User ${userName || id} not found`);
+    }
 
-      return user;
-    }
-    catch (error: any) {
-      throw error;
-    }
+    return user as any as Omit<User, 'password'>;
   }
 
   async update(
@@ -122,7 +117,10 @@ export class UserService {
   ): Promise<Omit<User, 'password'>> {
     // select all including password
 
-    const user = await this.userModel.findOne({ userName }).select('+password').lean();
+    const user = await this.userModel
+      .findOne({ userName })
+      .select('+password')
+      .lean();
 
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');

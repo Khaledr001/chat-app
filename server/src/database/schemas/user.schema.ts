@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
+import { Attachment, AttachmentSchema } from './common/attachment.schema';
 
 @Schema({ timestamps: true }) // This will automatically handle createdAt and updatedAt
 export class User extends Document {
@@ -14,6 +15,9 @@ export class User extends Document {
 
   @Prop({ required: true, select: false })
   password: string;
+
+  @Prop({ type: AttachmentSchema })
+  avatar: Attachment;
 }
 export const UserSchema = SchemaFactory.createForClass(User);
 
