@@ -1,19 +1,21 @@
-import { type ReactElement } from "react";
-import { ChatLayout } from "../pages/ChatLayout";
-import { Login } from "../pages/Login";
-import { Signup } from "../pages/Signup";
+import { type ReactElement, lazy } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { PrivateRoute } from "./PrivateRoute";
+
+const AppLayout = lazy(() => import("../pages/AppLayout"));
+const Login = lazy(() => import("../pages/Login"));
+const Signup = lazy(() => import("../pages/Signup"));
+const NotFound = lazy(() => import("../pages/NotFound"));
 
 const privateRouteWrapper = (elemtnt: ReactElement): ReactElement => {
   return <PrivateRoute> {elemtnt} </PrivateRoute>;
 };
 
-const AppRoute = () => {
+const AppRoutes = () => {
   const routes = createBrowserRouter([
     {
       path: "/",
-      element: privateRouteWrapper(<ChatLayout />),
+      element: privateRouteWrapper(<AppLayout />),
     },
     {
       path: "/login",
@@ -23,8 +25,12 @@ const AppRoute = () => {
       path: "/signup",
       element: <Signup />,
     },
+    {
+      path: "*",
+      element: <NotFound />,
+    },
   ]);
   return <RouterProvider router={routes} />;
 };
 
-export default AppRoute;
+export default AppRoutes;

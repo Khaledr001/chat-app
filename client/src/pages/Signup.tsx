@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 
-export const Signup = () => {
+const Signup = () => {
   const [formData, setFormData] = useState({
     name: "",
     userName: "",
@@ -202,3 +202,5 @@ export const Signup = () => {
     </div>
   );
 };
+
+export default Signup;

@@ -1,23 +1,35 @@
 import {
   Info,
+  MessageCircleMore,
   Mic,
-  MoreVertical,
   Paperclip,
-  Phone,
   Send,
   Smile,
-  Video,
 } from "lucide-react";
 import { useState } from "react";
-
+import { useChatLayoutContext } from "../../contexts/ChatLayoutContext";
 
 export const ChatWindow = () => {
   const [message, setMessage] = useState<string>("");
 
+  const { showDetails, setShowDetails, showChats, setShowChats } =
+    useChatLayoutContext();
+
+  const handleInfo = (e: React.MouseEvent) => {
+    e.preventDefault();
+    setShowDetails(!showDetails);
+  };
+
   return (
-    <div className="flex-1 flex flex-col bg-base-100 !p-1">
+    <div className="flex-1 flex flex-col bg-base-100 !p-1 h-full">
       {/* Chat Header */}
-      <div className="!p-2 border-b border-base-300 flex items-center justify-between">
+      <div className="!p-1 border-b border-base-300 flex items-center justify-between h-[55px]">
+        <button
+          onClick={() => setShowChats(!showChats)}
+          className="btn btn-ghost btn-circle btn-sm">
+          <MessageCircleMore className="h-5 w-5" />
+        </button>
+
         <div className="flex items-center gap-2 ">
           <div className="avatar">
             <div className="w-10 rounded-full">
@@ -32,7 +44,9 @@ export const ChatWindow = () => {
           </div>
         </div>
         <div className="flex gap-2">
-          <button className="btn btn-ghost btn-circle btn-sm">
+          <button
+            className="btn btn-ghost btn-circle btn-sm"
+            onClick={handleInfo}>
             <Info className="h-5 w-5" />
           </button>
         </div>

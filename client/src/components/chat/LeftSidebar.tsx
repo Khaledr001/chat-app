@@ -1,6 +1,12 @@
-import { MoreVertical } from "lucide-react";
-import { useEffect, useState } from "react";
+import {
+  ArrowLeft,
+  LucideArrowLeftCircle,
+  MoreVertical,
+  XCircle,
+} from "lucide-react";
+import { use, useEffect, useRef, useState } from "react";
 import type { IUser } from "../../shear/types/userType";
+import { useChatLayoutContext } from "../../contexts/ChatLayoutContext";
 
 interface Member {
   id: string;
@@ -87,12 +93,22 @@ const users: Member[] = [
 ];
 
 export const LeftSidebar = () => {
+  const { showChats, setShowChats } = useChatLayoutContext();
+
   const [activeTab, setActiveTab] = useState<"all" | "personal" | "groups">(
     "all"
   );
   const [selectedChat, setSelectedChat] = useState<string>("united-family");
+  const [searchClick, setSearchClick] = useState<boolean>(false);
+
+  const searchRef = useRef<HTMLLabelElement>(null);
 
   const [user, setUser] = useState<IUser | null>(null);
+
+  const handleSearch = (e: React.MouseEvent<HTMLLabelElement>) => {
+    e.preventDefault();
+    setSearchClick(true);
+  };
 
   useEffect(() => {
     // get user from localsrorage
@@ -100,20 +116,36 @@ export const LeftSidebar = () => {
     if (user) {
       setUser(JSON.parse(user));
     }
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (
+        searchRef.current &&
+        !searchRef.current.contains(event.target as Node)
+      ) {
+        setSearchClick(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   return (
-    <div className="w-80 !p-1.5 bg-base-100 border-r border-base-300 flex flex-col">
+    <div className="!p-1 w-full md:w-70 lg:w-96 xl:w-100 bg-base-100 border-r border-base-300 flex flex-col h-full">
       {/* Header */}
-      <div className="p-4 border-b border-base-300">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-bold">Chats</h2>
-          <button className="btn btn-ghost btn-circle btn-sm">
-            <MoreVertical className="h-5 w-5" />
-          </button>
-        </div>
+      <div className="flex items-center border-b border-base-300 h-[55px]">
+        <button
+          onClick={() => {
+            setShowChats(!showChats);
+          }}
+          className="btn btn-sm btn-circle md:hidden">
+          <LucideArrowLeftCircle className="h-6 w-6" />
+        </button>
+        <h2 className="text-xl w-[90%] text-center font-bold">Chats</h2>
+      </div>
 
-        {/* Avatar */}
+      {/* Avatar */}
+      <div className="p-4 border-b border-base-300">
         <div className="flex ">
           <div className="avatar !mx-2 !my-3">
             <div className="ring-primary ring-offset-base-100 w-11 rounded-full ring-2 ring-offset-2">
@@ -130,7 +162,10 @@ export const LeftSidebar = () => {
         </div>
 
         {/* Search */}
-        <label className="input rounded-full !my-2 !px-3 focus-within:outline-none">
+        <label
+          ref={searchRef}
+          onClick={handleSearch}
+          className="input rounded-full w-full !my-2 !px-3 focus-within:outline-none">
           <svg
             className="h-[1em] opacity-50"
             xmlns="http://www.w3.org/2000/svg"
@@ -150,67 +185,71 @@ export const LeftSidebar = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-4 justify-between !mx-2 !mt-4 !mb-2 !px-5 tabs tabs-box ">
-        <a
-          className={`!px-2 !my-2 !h-6 tab ${
-            activeTab === "all" ? "tab-active text-primary" : ""
-          }`}
-          onClick={() => setActiveTab("all")}>
-          All
-        </a>
-        <a
-          className={`!px-2 !my-2 !h-6 tab ${
-            activeTab === "personal" ? "tab-active text-primary" : ""
-          }`}
-          onClick={() => setActiveTab("personal")}>
-          Personal
-        </a>
-        <a
-          className={`!px-2 !my-2 !h-6 tab ${
-            activeTab === "groups" ? "tab-active text-primary" : ""
-          }`}
-          onClick={() => setActiveTab("groups")}>
-          Groups
-        </a>
-      </div>
+      {searchClick === true ? null : (
+        <>
+          <div className="flex gap-4 justify-between !mx-2 !mt-4 !mb-2 !px-5 tabs tabs-box ">
+            <a
+              className={`!px-2 !my-2 !h-6 tab ${
+                activeTab === "all" ? "tab-active text-primary" : ""
+              }`}
+              onClick={() => setActiveTab("all")}>
+              All
+            </a>
+            <a
+              className={`!px-2 !my-2 !h-6 tab ${
+                activeTab === "personal" ? "tab-active text-primary" : ""
+              }`}
+              onClick={() => setActiveTab("personal")}>
+              Personal
+            </a>
+            <a
+              className={`!px-2 !my-2 !h-6 tab ${
+                activeTab === "groups" ? "tab-active text-primary" : ""
+              }`}
+              onClick={() => setActiveTab("groups")}>
+              Groups
+            </a>
+          </div>
 
-      {/* Chat List */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="!px-2">
-          {users.map((user) => {
-            const isSelected = selectedChat === user.id;
-            return (
-              <div
-                key={user.id}
-                onClick={() => setSelectedChat(user.id)}
-                className={`flex !my-1.5 cursor-pointer rounded-lg transition-colors duration-150
+          {/* Chat List */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="!px-2">
+              {users.map((user) => {
+                const isSelected = selectedChat === user.id;
+                return (
+                  <div
+                    key={user.id}
+                    onClick={() => setSelectedChat(user.id)}
+                    className={`flex !my-1.5 cursor-pointer rounded-lg transition-colors duration-150
                   ${
                     isSelected
                       ? "bg-success/30 shadow-sm"
                       : "hover:bg-warning/10"
                   }
                 `}>
-                <div className="avatar">
-                  <div className="w-11 rounded-full">
-                    <img src="https://img.daisyui.com/images/profile/demo/idiotsandwich@192.webp" />
+                    <div className="avatar">
+                      <div className="w-11 rounded-full">
+                        <img src="https://img.daisyui.com/images/profile/demo/idiotsandwich@192.webp" />
+                      </div>
+                    </div>
+                    <div className="flex-1 !px-1 ml-3 min-w-0">
+                      <div className="flex items-center justify-between">
+                        <p className="font-semibold text-sm">{user.name}</p>
+                        <span className="text-xs text-base-content/50">
+                          {user.lastSeen}
+                        </span>
+                      </div>
+                      <p className="text-sm text-base-content/60 truncate">
+                        {user.status}
+                      </p>
+                    </div>
                   </div>
-                </div>
-                <div className="flex-1 !px-1 ml-3 min-w-0">
-                  <div className="flex items-center justify-between">
-                    <p className="font-semibold text-sm">{user.name}</p>
-                    <span className="text-xs text-base-content/50">
-                      {user.lastSeen}
-                    </span>
-                  </div>
-                  <p className="text-sm text-base-content/60 truncate">
-                    {user.status}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
+                );
+              })}
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

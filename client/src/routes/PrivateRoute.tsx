@@ -34,9 +34,5 @@ export const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
     checkAuth();
   }, []);
 
-  // if (!isAuth) {
-  //   return <Navigate to="/login" />;
-  // }
-
   return <>{children}</>;
 };
