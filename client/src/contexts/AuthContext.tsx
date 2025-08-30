@@ -14,7 +14,6 @@ const AuthContext = createContext<IAuthContextType>({
 
 export const useAuth = () => useContext(AuthContext);
 
-
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<IUser | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -29,7 +28,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         const response = await api.get("/auth/verifytoken");
         setUser(response.data.user);
-        
+
         setIsAuthenticated(true);
       } catch (error) {
         setUser(null);
@@ -40,18 +39,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     checkAuth();
   }, []);
 
-  const login = async (email: string, password: string) => {
-    const response = await authApi.login({ email, password });
+  const login = async (userName: string, password: string) => {
+    const response = await authApi.login({ userName, password });
     setUser(response.user);
     setIsAuthenticated(true);
 
     localStorage.setItem("user", JSON.stringify(response.user));
-    document.cookie = `token=Bearer ${response.token}; path=/; secure; samesite=strict`;
   };
 
   const signup = async (registerData: IRegisterData) => {
     try {
-      const { data } = await api.post("/auth/register", registerData);
+      const { data } = await api.post("/auth/register", registerData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
       setUser(data.user);
       setIsAuthenticated(true);
     } catch (error) {

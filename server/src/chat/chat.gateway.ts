@@ -10,10 +10,10 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { Logger } from '@nestjs/common';
-import { ChatService } from './chat.service';
 import { Types } from 'mongoose';
-import { Message } from './entities/message.entity';
 import { MessagePayload } from './interfaces/message.interface';
+import { Message } from 'src/database/schemas/message.schema';
+import { ChatService1 } from './chat1.service';
 
 @WebSocketGateway({
   cors: {
@@ -29,7 +29,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
   private activeUsers: Map<string, Types.ObjectId> = new Map(); // socketId -> userId
   private logger: Logger = new Logger('ChatGateway');
 
-  constructor(private chatService: ChatService) {}
+  constructor(private chatService: ChatService1) {}
 
   // Handle connection
   handleConnection(@ConnectedSocket() client: Socket) {
@@ -100,11 +100,7 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
           sender: (
             msg.sender as unknown as { _id: Types.ObjectId }
           )._id.toString(),
-          receiver: (
-            msg.receiver as unknown as { _id: Types.ObjectId }
-          )._id.toString(),
-          timestamp: msg.timestamp,
-          isRead: msg.isRead,
+          chat: (msg.chat as unknown as { _id: Types.ObjectId })._id.toString(),
         }),
       );
 
@@ -150,8 +146,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
         content: message.content,
         from: senderId.toString(),
         to: receiverId.toString(),
-        timestamp: message.timestamp,
-        isRead: message.isRead,
       };
 
       // Send to recipient

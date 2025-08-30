@@ -6,11 +6,15 @@ export interface IUserContextType {
 }
 
 export interface IUser {
-  id: number;
+  _id: string;
   name: string;
   userName: string;
   email: string;
-  avatar?: string;
+  avatar?: {
+    url: string;
+    type: string;
+    _id: string;
+  };
   createdAt: Date;
   updatedAt: Date;
 }

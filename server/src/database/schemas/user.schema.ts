@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { Document } from 'mongoose';
 import { Attachment, AttachmentSchema } from './common/attachment.schema';
+import { hash } from 'bcrypt';
 
 @Schema({ timestamps: true }) // This will automatically handle createdAt and updatedAt
 export class User extends Document {
@@ -17,13 +18,20 @@ export class User extends Document {
   password: string;
 
   @Prop({ type: AttachmentSchema })
-  avatar: Attachment;
+  avatar?: Attachment;
 }
 export const UserSchema = SchemaFactory.createForClass(User);
 
 // Add index for faster queries
 UserSchema.index({ email: 1 });
 UserSchema.index({ userName: 1 });
+
+UserSchema.pre('save', async function (next) {
+  if (!this.isModified('password')) return next();
+
+  this.password = await hash(this.password, 10);
+  next();
+});
 
 export const USER_MODEL_NAME = User.name;
 

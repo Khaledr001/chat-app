@@ -3,7 +3,7 @@ import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
-  const [email, setEmail] = useState("");
+  const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -15,7 +15,7 @@ const Login = () => {
     setError("");
     setIsLoading(true);
     try {
-      await login(email, password);
+      await login(userName, password);
       navigate("/");
     } catch (err: any) {
       setError(err.response?.data?.message || "Failed to login");
@@ -39,7 +39,7 @@ const Login = () => {
           onSubmit={handleSubmit}
           className="flex flex-col items-center justify-center gap-7 !p-5">
           <label
-            htmlFor="email"
+            htmlFor="userName"
             className="floating-label !px-2 input input-lg input-info w-full validator">
             <span> User Name </span>
             <svg
@@ -57,10 +57,10 @@ const Login = () => {
               </g>
             </svg>
             <input
-              id="email"
+              id="userName"
               type="username"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              value={userName}
+              onChange={(e) => setUserName(e.target.value)}
               // className="input input-lg input-info"
               placeholder="Enter your username"
               // pattern="[A-Za-z][A-Za-z0-9\-!@]*"

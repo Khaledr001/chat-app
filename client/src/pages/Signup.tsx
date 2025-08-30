@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import { LucideCamera } from "lucide-react";
+import default_image from "../../public/image/default_image.png";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
+    avatar: null as File | null,
     name: "",
     userName: "",
     email: "",
@@ -12,6 +15,8 @@ const Signup = () => {
   });
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [avatar, setAvatar] = useState<string>("");
+
   const { signup } = useAuth();
   const navigate = useNavigate();
 
@@ -20,6 +25,19 @@ const Signup = () => {
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  // Handle Image Change
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setAvatar(reader.result as string);
+        setFormData({ ...formData, avatar: file });
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -32,6 +50,7 @@ const Signup = () => {
     setIsLoading(true);
     try {
       await signup({
+        avatar: formData.avatar,
         name: formData.name,
         userName: formData.userName,
         email: formData.email,
@@ -50,7 +69,7 @@ const Signup = () => {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-gray-900 via-gray-950 to-blue-900 px-4 py-8">
       <div className="bg-gray-800/90 backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-md border border-gray-700 min-h-[550px] !p-5">
-        <h2 className="text-3xl font-extrabold text-white !mt-5 !mb-10 text-center tracking-tight">
+        <h2 className="text-3xl font-extrabold text-white !mt-5 !mb-8 text-center tracking-tight">
           Sign Up
         </h2>
         {error && (
@@ -58,7 +77,37 @@ const Signup = () => {
             {error}
           </div>
         )}
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-6 justify-center items-center">
+          <div className="relative w-32 mx-auto !mb-2">
+            {/* Avatar */}
+            <div className="avatar">
+              <div className="mask mask-squircle w-30 border border-gray-300 dark:border-gray-700">
+                {avatar ? (
+                  <img src={avatar} alt="Avatar" className="object-cover" />
+                ) : (
+                  <img
+                    src={default_image}
+                    alt="Default Avatar"
+                    className="object-cover"
+                  />
+                )}
+              </div>
+            </div>
+
+            {/* Upload Button Overlay */}
+            <label className="absolute bottom-0 right-1 bg-black/60 hover:bg-black/80 text-white !p-1 rounded-full cursor-pointer shadow-md transition">
+              <LucideCamera size={24} />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+            </label>
+          </div>
+
           <label
             htmlFor="name"
             className="floating-label !px-2 input input-lg w-full input-info validator">
@@ -174,6 +223,38 @@ const Signup = () => {
               name="password"
               type="password"
               value={formData.password}
+              onChange={handleChange}
+              // className="input input-lg input-info"
+              minLength={4}
+              title="Password should be at least 4 characters long"
+              placeholder="Create a password"
+              required
+            />
+          </label>
+
+          <label
+            htmlFor="confirmPassword"
+            className="floating-label !px-2 input input-lg w-full input-info validator">
+            <span>Confirm Password</span>
+            <svg
+              className="h-[1em] opacity-50"
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24">
+              <g
+                strokeLinejoin="round"
+                strokeLinecap="round"
+                strokeWidth="2.5"
+                fill="none"
+                stroke="currentColor">
+                <path d="M2.586 17.414A2 2 0 0 0 2 18.828V21a1 1 0 0 0 1 1h3a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h1a1 1 0 0 0 1-1v-1a1 1 0 0 1 1-1h.172a2 2 0 0 0 1.414-.586l.814-.814a6.5 6.5 0 1 0-4-4z"></path>
+                <circle cx="16.5" cy="7.5" r=".5" fill="currentColor"></circle>
+              </g>
+            </svg>
+            <input
+              id="confirmPassword"
+              name="confirmPassword"
+              type="password"
+              value={formData.confirmPassword}
               onChange={handleChange}
               // className="input input-lg input-info"
               minLength={4}

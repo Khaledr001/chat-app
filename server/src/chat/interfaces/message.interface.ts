@@ -3,8 +3,6 @@ export interface MessagePayload {
   content: string;
   from: string;
   to: string;
-  timestamp: Date;
-  isRead: boolean;
 }
 
 export interface PopulatedMessage {

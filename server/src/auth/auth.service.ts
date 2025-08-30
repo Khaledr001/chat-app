@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'src/database/schemas/user.schema';
+import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import { UserService } from 'src/user/user.service';
 
 @Injectable()
@@ -27,23 +28,19 @@ export class AuthService {
     return { user, token };
   }
 
-  async register(
-    name: string,
-    userName: string,
-    email: string,
-    password: string,
-  ): Promise<Omit<User, 'password'>> {
+  async register(user: CreateUserDto): Promise<Omit<User, 'password'>> {
     try {
-      const user = await this.userService.create({
-        name,
-        userName,
-        email,
-        password,
+      const newUser = await this.userService.create({
+        avatar: user?.avatar,
+        name: user.name,
+        userName: user.userName,
+        email: user.email,
+        password: user.password,
       });
 
-      return user;
+      return newUser;
     } catch (error) {
-      throw new Error('Registration failed', error.message);
+      throw new HttpException(error.message, error.status || 500);
     }
   }
 
@@ -59,8 +56,7 @@ export class AuthService {
 
       return user;
     } catch (error) {
-      throw new Error('Token verification failed', error.message);
+      throw new HttpException(error.message, error.status || 500);
     }
   }
 }
-  

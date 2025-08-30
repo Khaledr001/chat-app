@@ -5,9 +5,9 @@ import {
   UnauthorizedException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateUserDto } from './dto/create-user.dto';
-import { compare, hash } from 'bcrypt';
+import { compare } from 'bcrypt';
 import {
   User,
   USER_MODEL_NAME,
@@ -39,11 +39,8 @@ export class UserService {
       throw new ConflictException('Username already exists');
     }
 
-    const hashedPassword = await hash(createUserDto.password, 10);
-
     const user = new this.userModel({
       ...createUserDto,
-      password: hashedPassword,
     });
 
     const newUser = await user.save();
@@ -58,7 +55,7 @@ export class UserService {
   }
 
   async findOne(
-    id?: string,
+    id?: string | Types.ObjectId,
     userName?: string,
   ): Promise<Omit<User, 'password'>> {
     const query = userName ? { userName } : { _id: id };
@@ -83,10 +80,6 @@ export class UserService {
 
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
-    }
-
-    if (updateUserDto.password) {
-      updateUserDto.password = await hash(updateUserDto.password, 10);
     }
 
     if (updateUserDto.email && updateUserDto.email !== user.email) {

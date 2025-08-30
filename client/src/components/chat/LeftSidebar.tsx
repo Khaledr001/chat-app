@@ -1,10 +1,7 @@
 import {
-  ArrowLeft,
   LucideArrowLeftCircle,
-  MoreVertical,
-  XCircle,
 } from "lucide-react";
-import { use, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { IUser } from "../../shear/types/userType";
 import { useChatLayoutContext } from "../../contexts/ChatLayoutContext";
 
@@ -148,12 +145,12 @@ export const LeftSidebar = () => {
       <div className="p-4 border-b border-base-300">
         <div className="flex ">
           <div className="avatar !mx-2 !my-3">
-            <div className="ring-primary ring-offset-base-100 w-11 rounded-full ring-2 ring-offset-2">
-              <img src="https://img.daisyui.com/images/profile/demo/spiderperson@192.webp" />
+            <div className="ring-primary ring-offset-base-100 w-12 rounded-full ring-1 ring-offset-1">
+              <img src={`http://localhost:3100/${user?.avatar?.url}`} />
             </div>
           </div>
           {/* Show user information */}
-          {user && (
+          {user && (  
             <div className="!mt-2 !mx-1.5">
               <p className="font-semibold">{user.name}</p>
               <p className="text-sm text-base-content/50">{user.userName}</p>

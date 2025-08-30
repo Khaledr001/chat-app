@@ -1,6 +1,7 @@
 import type { IUser } from "./userType";
 
 export interface IRegisterData {
+  avatar: File | null;
   name: string;
   userName: string;
   email: string;

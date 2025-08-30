@@ -7,12 +7,18 @@ import {
   Req,
   Res,
   UnauthorizedException,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
 import { LoginDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
 import { ApiOperation } from '@nestjs/swagger';
 import { CreateUserDto } from 'src/user/dto/create-user.dto';
 import type { Request, Response } from 'express';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { avatarUploadConfig } from 'src/config/avater-upload.config';
+import { duplicateImageChecker } from 'src/util/duplicate-file-checker';
+import { ATTACHMENT_TYPE } from 'src/database/schemas/common/database.constant';
 
 declare module 'express' {
   interface Request {
@@ -52,15 +58,32 @@ export class AuthController {
 
   @Post('register')
   @ApiOperation({ summary: 'User registration' })
-  async register(@Body() register: CreateUserDto, @Res() res: Response) {
+  @UseInterceptors(FileInterceptor('avatar', avatarUploadConfig))
+  async register(
+    @UploadedFile() file: Express.Multer.File,
+    @Body() register: CreateUserDto,
+    @Req() req: Request,
+    @Res() res: Response,
+  ) {
+    let avatar: any;
+    if (file) {
+      const finalFile = duplicateImageChecker(file);
+      avatar = {
+        url: finalFile.path, 
+        type: ATTACHMENT_TYPE.IMAGE,
+      };
+    }
+
     try {
       const { name, userName, email, password } = register;
-      const user = await this.authService.register(
+      const userObj: CreateUserDto = {
         name,
         userName,
         email,
         password,
-      );
+        avatar,
+      };
+      const user = await this.authService.register(userObj);
 
       res.status(HttpStatus.CREATED).json({
         message: 'User registered successfully',
@@ -69,7 +92,7 @@ export class AuthController {
     } catch (error: any) {
       res.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: error.message || 'Registration failed',
-      });
+      }); 
     }
   }
 

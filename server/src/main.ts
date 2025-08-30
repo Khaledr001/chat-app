@@ -1,11 +1,16 @@
-import { NestFactory } from '@nestjs/core';
+import { HttpAdapterHost, NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { apiReference } from '@scalar/nestjs-api-reference';
 import { ConfigService } from '@nestjs/config';
+import { join } from 'path';
+import { NestExpressApplication } from '@nestjs/platform-express';
+import { HttpExceptionFilter } from './global-filter/global-error.exception';
+import { AllException } from './global-filter/all.exception';
+import cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   // Enable CORS
   app.enableCors({
@@ -13,12 +18,21 @@ async function bootstrap() {
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
+
+  app.use(cookieParser());
   /**
    * Get the configuration service to access environment variables
    */
   const configService = app.get(ConfigService);
   const port = configService.get<number>('PORT') || 3000;
   const nodeEnv = configService.get<string>('NODE_ENV') || 'development';
+
+  // Global exception filters
+  const httpAdapterHost = app.get(HttpAdapterHost);
+  app.useGlobalFilters(
+    new HttpExceptionFilter(),
+    new AllException(httpAdapterHost),
+  );
 
   /**
    * Global prefix for API routes
@@ -41,6 +55,11 @@ async function bootstrap() {
 
     app.use('/docs', apiReference({ content: document }));
   }
+
+  // Serve static files
+  app.useStaticAssets(join(__dirname, '..', 'public'), {
+    prefix: '/',
+  });
 
   await app.listen(port);
 

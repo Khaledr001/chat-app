@@ -10,6 +10,7 @@ import { APP_INTERCEPTOR } from '@nestjs/core';
 import { LoggerInterceptor } from './interceptors/api.logger.interceptor';
 import { DatabaseModule } from './database/database.module';
 import { MongooseModelModule } from './database/mongoose.model.module';
+import { MessageModule } from './message/message.module';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { MongooseModelModule } from './database/mongoose.model.module';
     ChatModule,
     AuthModule,
     DatabaseModule,
+    MessageModule,
   ],
   controllers: [AppController],
   providers: [
