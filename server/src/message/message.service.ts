@@ -1,17 +1,24 @@
-import { HttpException, Inject, Injectable } from '@nestjs/common';
+import { HttpException, Injectable } from '@nestjs/common';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
-import { MESSAGE_MODEL_NAME, MessageDocument } from 'src/database/schemas/message.schema';
+import {
+  MESSAGE_MODEL_NAME,
+  MessageDocument,
+} from 'src/database/schemas/message.schema';
 import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
 
 @Injectable()
 export class MessageService {
-  constructor(@Inject(MESSAGE_MODEL_NAME) private messageModel: Model<MessageDocument>) {}
+  constructor(
+    @InjectModel(MESSAGE_MODEL_NAME) private messageModel: Model<MessageDocument>,
+  ) {}
 
   create(createMessageDto: CreateMessageDto) {
     try {
       const newMessage = new this.messageModel(createMessageDto);
-      return newMessage.save();
+      const message = newMessage.save();
+      return message;
     } catch (error) {
       throw new HttpException(error.message, error.status || 500);
     }

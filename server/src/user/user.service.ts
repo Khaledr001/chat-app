@@ -66,7 +66,7 @@ export class UserService {
       .exec();
 
     if (!user) {
-      throw new NotFoundException(`User ${userName || id} not found`);
+      throw new NotFoundException(`User ${userName} not found`);
     }
 
     return user as any as Omit<User, 'password'>;
