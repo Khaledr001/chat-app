@@ -2,6 +2,7 @@ import {
   ArgumentsHost,
   Catch,
   ExceptionFilter,
+  HttpException,
   HttpStatus,
   Logger,
 } from '@nestjs/common';
@@ -20,11 +21,31 @@ export class AllException implements ExceptionFilter {
     const response = ctx.getResponse();
     const request = ctx.getRequest();
 
-    const status = HttpStatus.INTERNAL_SERVER_ERROR;
-    const message = 'Internal server error';
+    let status = HttpStatus.INTERNAL_SERVER_ERROR;
+    let message = 'Internal server error';
 
+    if (exception instanceof HttpException) {
+      status = exception.getStatus();
+      const exceptionResponse = exception.getResponse();
+      message =
+        typeof exceptionResponse === 'string'
+          ? exceptionResponse
+          : (exceptionResponse as any).message || message;
+    } else if (exception instanceof Error) {
+      message = exception.message;
+    }
     this.logger.error(`All Exception: ${message}`, exception.stack);
 
-    httpAdapter.reply(response, { status, message });
+    httpAdapter.reply(
+      response,
+      {
+        success: false,
+        statusCode: status,
+        message,
+        timestamp: new Date().toISOString(),
+        path: request.url,
+      },
+      status,
+    );
   }
 }

@@ -2,13 +2,21 @@
 // Event Name
 
 export const CHAT_EVENTS = {
-    ALERT: "alert",
-    MESSAGE: "message",
+    ALERT: "ALERT",
+    REFETCH: "REFETCH",
+    MESSAGE: "MESSAGE",
 }
 
 export const MESSAGE_EVENTS = {
-    SENT: "message.sent",
-    RECEIVED: "message.received",
-    DELIVERED: "message.delivered",
-    READ: "message.read",
+    NEW_MESSAGE: "NEW_MESSAGE",
+    SENT: "MESSAGE_SENT",
+    RECEIVED: "MESSAGE_RECEIVED",
+    DELIVERED: "MESSAGE_DELIVERED",
+    READ: "MESSAGE_READ",
 };
+
+
+export const ATTACHMENT_EVENTS = {
+    NEW_ATTACHMENT: "NEW_ATTACHMENT",
+    REMOVE: "ATTACHMENT_REMOVE",
+}

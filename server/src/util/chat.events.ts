@@ -4,7 +4,7 @@ export const emitEvents = (
   req: Request,
   event: string,
   users: string[],
-  message: string,
+  message?: any,
 ) => {
   console.log(message);
 };

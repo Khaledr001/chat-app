@@ -1,14 +1,17 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
+  NotAcceptableException,
   Param,
   Post,
   Put,
   Req,
   Res,
   UseGuards,
+  ValidationPipe,
 } from '@nestjs/common';
 import { TryCatch } from 'src/util/trycatch';
 import { ChatService } from './chat.service';
@@ -24,6 +27,7 @@ import {
   CreatePrivateChatDto,
   LeaveMembersDto,
 } from './dto/chat.dot';
+import { ParseObjectIdPipe } from '@nestjs/mongoose';
 
 @UseGuards(AuthGuard)
 @Controller('chat')
@@ -213,6 +217,61 @@ export class ChatController {
       successResponse(res, {
         data: { group: chat },
         message: 'Left Group Chat Successfully!',
+      });
+    } catch (error) {
+      const status = typeof error.status === 'number' ? error.status : 500;
+      errorResponse(res, { statusCode: status, message: error.message });
+    }
+  }
+
+  @ApiOperation({ summary: 'Rename Group Chat' })
+  @Put('/:id')
+  async renameGroupChat(
+    @Res() res,
+    @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
+    @Body() body: { name: string },
+  ) {
+    try {
+      if (!body?.name) {
+        throw new NotAcceptableException('Name is required');
+      }
+
+      const updatedChat = await this.chatService.renameGroupChat(id, body.name);
+
+      // emit events
+      emitEvents(res, CHAT_EVENTS.REFETCH, updatedChat.members as string[]);
+
+      successResponse(res, {
+        data: { group: updatedChat },
+        message: 'Group Chat Renamed Successfully!',
+      });
+    } catch (error) {
+      const status = typeof error.status === 'number' ? error.status : 500;
+      errorResponse(res, { statusCode: status, message: error.message });
+    }
+  }
+
+  @ApiOperation({ summary: 'Delete Group Chat' })
+  @Delete('/:id')
+  async DeleteAGroup(
+    @Req() req,
+    @Res() res,
+    @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
+  ) {
+    try {
+      const deletedChat = await this.chatService.deleteAGroup(id, req.user._id);
+
+      // emit events
+      emitEvents(
+        res,
+        CHAT_EVENTS.ALERT,
+        deletedChat.members as string[],
+        `A group chat has been deleted`,
+      );
+
+      successResponse(res, {
+        data: { group: deletedChat },
+        message: 'Group Chat Deleted Successfully!',
       });
     } catch (error) {
       const status = typeof error.status === 'number' ? error.status : 500;

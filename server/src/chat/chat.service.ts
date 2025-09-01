@@ -6,13 +6,19 @@ import {
   Type,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Types } from 'mongoose';
+import mongoose, { Model, Types } from 'mongoose';
 
 import {
   Chat,
   CHAT_MODEL_NAME,
   ChatDocument,
 } from 'src/database/schemas/chat.schema';
+import { Attachment } from 'src/database/schemas/common/attachment.schema';
+import {
+  Message,
+  MESSAGE_MODEL_NAME,
+  MessageDocument,
+} from 'src/database/schemas/message.schema';
 import {
   USER_MODEL_NAME,
   UserDocument,
@@ -27,7 +33,8 @@ export class ChatService {
     private userModel: Model<UserDocument>,
     @InjectModel(CHAT_MODEL_NAME)
     private chatModel: Model<ChatDocument>,
-    // private readonly userService: UserService,
+    @InjectModel(MESSAGE_MODEL_NAME)
+    private messageModel: Model<MessageDocument>,
   ) {}
 
   async createGroupChat(
@@ -289,6 +296,79 @@ export class ChatService {
 
       return { chat, memberName: member?.name };
     } catch (error) {
+      throw new HttpException(error.message, error.status || 500);
+    }
+  }
+
+  // Rename Group Chat
+  async renameGroupChat(chatId: Types.ObjectId, name: string) {
+    try {
+      const chat = await this.chatModel.findById(chatId);
+      if (!chat)
+        throw new HttpException('Chat not found', HttpStatus.NOT_FOUND);
+
+      const isGroupChat = chat.groupChat;
+      if (!isGroupChat)
+        throw new HttpException(
+          'Only group chats can be renamed',
+          HttpStatus.BAD_REQUEST,
+        );
+
+      chat.name = name;
+      await chat.save();
+      return chat;
+    } catch (error) {
+      throw new HttpException(error.message, error.status || 500);
+    }
+  }
+
+  // Delete A Group Chat
+  async deleteAGroup(chatId: Types.ObjectId, remover: Types.ObjectId) {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+      const [chat, messagesWithAttachments] = await Promise.all([
+        this.chatModel.findById(chatId).populate('attachments').lean(),
+        this.messageModel.find({
+          chat: chatId,
+          attachments: { $exists: true, $ne: [] },
+        }),
+      ]);
+      if (!chat)
+        throw new HttpException('Chat not found', HttpStatus.NOT_FOUND);
+
+      if (!chat.groupChat)
+        throw new HttpException(
+          'Only group chats can be deleted',
+          HttpStatus.BAD_REQUEST,
+        );
+
+      if ((chat.creator as Types.ObjectId).toString() !== remover.toString()) {
+        throw new HttpException(
+          'Only the group creator can delete this chat',
+          HttpStatus.FORBIDDEN,
+        );
+      }
+
+      // Delete chat and messages
+      await Promise.all([
+        this.chatModel.deleteOne({ _id: chatId }, { session }),
+        this.messageModel.deleteMany({ chat: chatId }, { session }),
+      ]);
+
+      // Get all the attachment url from message model;
+      const attachmentsUrl: string[] = [];
+      messagesWithAttachments.forEach(({ attachments }) => {
+        attachments.forEach(({ url }) => attachmentsUrl.push(url));
+      });
+
+      // Delete all attachment from 'public/attachments'
+
+      await session.commitTransaction();
+
+      return chat;
+    } catch (error) {
+      await session.abortTransaction();
       throw new HttpException(error.message, error.status || 500);
     }
   }
