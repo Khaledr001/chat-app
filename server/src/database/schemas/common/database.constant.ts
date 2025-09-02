@@ -8,4 +8,4 @@ export enum ATTACHMENT_TYPE {
   IMAGE = 'image',
   VIDEO = 'video',
   AUDIO = 'audio',
-}
+} 

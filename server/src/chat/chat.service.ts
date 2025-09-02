@@ -117,6 +117,25 @@ export class ChatService {
     }
   }
 
+  async getPrivateChats(member: Types.ObjectId) {
+    try {
+      const allPrivateChats: Chat[] = await this.chatModel
+        .find({
+          groupChat: false,
+          members: { $in: [member] },
+        })
+        .populate({
+          path: 'members',
+          select: 'avatar.url',
+        })
+        .lean();
+
+      return allPrivateChats;
+    } catch (error) {
+      throw new HttpException(error.message, error.status || 500);
+    }
+  }
+
   async getGroupChats(member: Types.ObjectId) {
     try {
       const allGroupChats: Chat[] = await this.chatModel

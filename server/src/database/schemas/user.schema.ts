@@ -22,10 +22,6 @@ export class User extends Document {
 }
 export const UserSchema = SchemaFactory.createForClass(User);
 
-// Add index for faster queries
-UserSchema.index({ email: 1 });
-UserSchema.index({ userName: 1 });
-
 UserSchema.pre('save', async function (next) {
   if (!this.isModified('password')) return next();
 

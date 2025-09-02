@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { IsMongoId, IsNotEmpty, IsString } from 'class-validator';
 import { Types } from 'mongoose';
 
 export class CreateMessageDto {
@@ -8,7 +8,7 @@ export class CreateMessageDto {
     description: 'Chat ObjectId',
   })
   @IsNotEmpty()
-  @IsString()
+  @IsMongoId()
   chat: Types.ObjectId;
 
   @ApiProperty({
@@ -16,7 +16,7 @@ export class CreateMessageDto {
     description: 'Sender ObjectId',
   })
   @IsNotEmpty()
-  @IsString()
+  @IsMongoId()
   sender: Types.ObjectId;
 
   @ApiProperty({

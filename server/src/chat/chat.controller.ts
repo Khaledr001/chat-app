@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpStatus,
   NotAcceptableException,
   Param,
   Post,
@@ -11,16 +10,14 @@ import {
   Req,
   Res,
   UseGuards,
-  ValidationPipe,
 } from '@nestjs/common';
-import { TryCatch } from 'src/util/trycatch';
 import { ChatService } from './chat.service';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { emitEvents } from 'src/util/chat.events';
 import { CHAT_EVENTS } from 'src/constants/events';
 import { errorResponse, successResponse } from 'src/util/response';
 import { Types } from 'mongoose';
-import { ApiBody, ApiOperation } from '@nestjs/swagger';
+import { ApiOperation } from '@nestjs/swagger';
 import {
   AddNewMembersDto,
   CreateGroupChatDto,
@@ -101,8 +98,12 @@ export class ChatController {
   }
 
   @Get('/:id')
-  @ApiOperation({ summary: 'Get All Chat By ID' })
-  async getAllChats(@Req() req, @Res() res, @Param('id') id: Types.ObjectId) {
+  @ApiOperation({ summary: 'Get All Chat By Member Id' })
+  async getAllChats(
+    @Req() req,
+    @Res() res,
+    @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
+  ) {
     try {
       const member = id;
       const allChats = await this.chatService.getAllChats(member);
@@ -116,15 +117,37 @@ export class ChatController {
     }
   }
 
+  @Get('private/:id')
+  @ApiOperation({ summary: 'Get Private Chat By Member ID' })
+  async getPrivateChat(
+    @Req() req,
+    @Res() res,
+    @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
+  ) {
+    try {
+      const allPrivateChats = await this.chatService.getPrivateChats(id);
+      successResponse(res, {
+        data: { private: allPrivateChats },
+        message: 'All Private Chats Retrieved Successfully!',
+      });
+    } catch (error) {
+      errorResponse(res, { statusCode: error.status, message: error.message });
+    }
+  }
+
   @Get('group/:id')
-  @ApiOperation({ summary: 'Get All Group Chats By ID' })
-  async getGroupChat(@Req() req, @Res() res, @Param('id') id: Types.ObjectId) {
+  @ApiOperation({ summary: 'Get All Group Chats By Member ID' })
+  async getGroupChat(
+    @Req() req,
+    @Res() res,
+    @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
+  ) {
     try {
       const allGroupChats = await this.chatService.getGroupChats(id);
 
       successResponse(res, {
         data: { groups: allGroupChats },
-        message: 'All Group Retrived Succesfully',
+        message: 'All Group Retrieved Successfully!',
       });
     } catch (error) {
       const status = typeof error.status === 'number' ? error.status : 500;

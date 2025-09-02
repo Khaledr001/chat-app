@@ -1,8 +1,10 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import {
   Injectable,
   NotFoundException,
   ConflictException,
   UnauthorizedException,
+  HttpException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -13,12 +15,19 @@ import {
   USER_MODEL_NAME,
   UserDocument,
 } from 'src/database/schemas/user.schema';
+import {
+  CHAT_MODEL_NAME,
+  ChatDocument,
+} from 'src/database/schemas/chat.schema';
+import { avatarUploadConfig } from 'src/config/avater-upload.config';
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectModel(USER_MODEL_NAME)
     private readonly userModel: Model<UserDocument>,
+    @InjectModel(CHAT_MODEL_NAME)
+    private readonly chatModel: Model<ChatDocument>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
@@ -70,6 +79,36 @@ export class UserService {
     }
 
     return user as any as Omit<User, 'password'>;
+  }
+
+  async findNotFriends(userId: Types.ObjectId, name?: string): Promise<any[]> {
+    try {
+      const myChats = await this.chatModel.find({
+        groupChat: false,
+        members: userId,
+      });
+
+      const friendIds = myChats
+        .flatMap(({ members }: any) => members)
+        .filter((id) => id !== userId);
+
+      const allUsers = await this.userModel
+        .find({
+          _id: { $nin: friendIds },
+          name: { $regex: name || '', $options: 'i' },
+        })
+        .lean();
+
+      const users = allUsers.map(({ _id, name, avatar }) => ({
+        _id,
+        name,
+        avatar: avatar?.url,
+      }));
+
+      return users;
+    } catch (error) {
+      throw new HttpException(error.message, error.status || 500);
+    }
   }
 
   async update(

@@ -7,6 +7,9 @@ import {
   Param,
   Delete,
   UseGuards,
+  Req,
+  Res,
+  Put,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -14,6 +17,7 @@ import { ApiOperation, ApiParam, ApiResponse } from '@nestjs/swagger';
 import { AuthGuard } from 'src/auth/auth.guard';
 import { Types } from 'mongoose';
 import { User } from 'src/database/schemas/user.schema';
+import { errorResponse, successResponse } from 'src/util/response';
 
 @Controller('user')
 @UseGuards(AuthGuard)
@@ -44,6 +48,49 @@ export class UserController {
   async findAll(): Promise<Omit<User, 'password'>[]> {
     const users = await this.userService.findAll();
     return users;
+  }
+
+  @Get('me')
+  @ApiOperation({ summary: 'Get current user' })
+  @ApiResponse({
+    status: 200,
+    description: 'Current user found',
+    type: User,
+  })
+  async findMe(@Req() req, @Res() res) {
+    try {
+      const userId = req.user._id;
+      await this.userService.findOne(userId);
+
+      successResponse(res, {
+        data: { user: userId },
+        message: 'User Retrieved Successfully!',
+      });
+    } catch (error) {
+      errorResponse(res, { statusCode: error.status, message: error.message });
+    }
+  }
+
+  @Get('notfriends')
+  @ApiOperation({
+    summary: 'Get all users that are not friends with the current user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of users that are not friends',
+    type: [User],
+  })
+  async findNotFriends(@Req() req, @Res() res) {
+    try {
+      const userId = req.user._id;
+      const users = await this.userService.findNotFriends(userId);
+      successResponse(res, {
+        data: { users },
+        message: 'Not friends retrieved successfully!',
+      });
+    } catch (error) {
+      errorResponse(res, { statusCode: error.status, message: error.message });
+    }
   }
 
   @Get(':id')
