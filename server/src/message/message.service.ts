@@ -27,6 +27,8 @@ export class MessageService {
 
       const newMessage = new this.messageModel(createMessageDto);
       const message = await newMessage.save();
+
+      console.log('New message created:', message);
       return { message, chat };
     } catch (error) {
       throw new HttpException(error.message, error.status || 500);

@@ -49,7 +49,7 @@ export class ChatController {
 
       emitEvents(
         req,
-        CHAT_EVENTS.MESSAGE,
+        CHAT_EVENTS.message,
         members as any as string[],
         `${creator} created a group chat: ${name}`,
       );
@@ -82,7 +82,7 @@ export class ChatController {
 
       emitEvents(
         req,
-        CHAT_EVENTS.MESSAGE,
+        CHAT_EVENTS.message,
         members as any as string[],
         `${creator} created a private chat`,
       );
@@ -171,7 +171,7 @@ export class ChatController {
 
       emitEvents(
         res,
-        CHAT_EVENTS.ALERT,
+        CHAT_EVENTS.alert,
         updatedChat.allUserName,
         `${assigner} added ${updatedChat.allUserName.join(', ')} to group chat`,
       );
@@ -202,7 +202,7 @@ export class ChatController {
 
       emitEvents(
         res,
-        CHAT_EVENTS.ALERT,
+        CHAT_EVENTS.alert,
         chat.members as string[],
         `${remover} removed ${allUserName} from group chat`,
       );
@@ -232,7 +232,7 @@ export class ChatController {
 
       emitEvents(
         res,
-        CHAT_EVENTS.ALERT,
+        CHAT_EVENTS.alert,
         chat.members as string[],
         `${memberName} left the group chat`,
       );
@@ -262,7 +262,7 @@ export class ChatController {
       const updatedChat = await this.chatService.renameGroupChat(id, body.name);
 
       // emit events
-      emitEvents(res, CHAT_EVENTS.REFETCH, updatedChat.members as string[]);
+      emitEvents(res, CHAT_EVENTS.refetch, updatedChat.members as string[]);
 
       successResponse(res, {
         data: { group: updatedChat },
@@ -287,7 +287,7 @@ export class ChatController {
       // emit events
       emitEvents(
         res,
-        CHAT_EVENTS.ALERT,
+        CHAT_EVENTS.alert,
         deletedChat.members as string[],
         `A group chat has been deleted`,
       );

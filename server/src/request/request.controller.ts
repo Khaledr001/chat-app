@@ -41,7 +41,7 @@ export class RequestController {
       );
 
       // Emit Events
-      emitEvents(res, REQUEST_EVENTS.NEW_REQUEST, [receiverId]);
+      emitEvents(res, REQUEST_EVENTS.newRequest, [receiverId]);
 
       successResponse(res, {
         statusCode: 201,

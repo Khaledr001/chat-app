@@ -12,6 +12,7 @@ import { DatabaseModule } from './database/database.module';
 import { MongooseModelModule } from './database/mongoose.model.module';
 import { MessageModule } from './message/message.module';
 import { RequestModule } from './request/request.module';
+import { SocketModule } from './socket/socket.module';
 
 @Module({
   imports: [
@@ -25,6 +26,9 @@ import { RequestModule } from './request/request.module';
     // Import DatabaseModule
     DatabaseModule,
     MongooseModelModule,
+
+    // Socket Gateway
+    SocketModule,
 
     // Import other modules here
     UserModule,

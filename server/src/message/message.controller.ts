@@ -75,7 +75,7 @@ export class MessageController {
       // Emit Event
       emitEvents(
         req,
-        ATTACHMENT_EVENTS.NEW_ATTACHMENT,
+        ATTACHMENT_EVENTS.newAttachment,
         chat.members as string[],
         {
           message: messageForRealTime,
@@ -83,8 +83,8 @@ export class MessageController {
         },
       );
 
-      // New Message Event alart
-      emitEvents(req, MESSAGE_EVENTS.NEW_MESSAGE, chat.members as string[], {
+      // New Message Event alert
+      emitEvents(req, MESSAGE_EVENTS.newMessage, chat.members as string[], {
         chatId: createMessageDto.chat,
       });
 

@@ -1,26 +1,26 @@
 // Event Name
 
 export const CHAT_EVENTS = {
-  ALERT: 'ALERT',
-  REFETCH: 'REFETCH',
-  MESSAGE: 'MESSAGE',
+  alert: 'alert',
+  refetch: 'refetch',
+  message: 'message',
 };
 
 export const MESSAGE_EVENTS = {
-  NEW_MESSAGE: 'NEW_MESSAGE',
-  SENT: 'MESSAGE_SENT',
-  RECEIVED: 'MESSAGE_RECEIVED',
-  DELIVERED: 'MESSAGE_DELIVERED',
-  READ: 'MESSAGE_READ',
+  newMessage: 'new_message',
+  sent: 'message_sent',
+  received: 'message_received',
+  delivered: 'message_delivered',
+  read: 'message_read',
 };
 
 export const ATTACHMENT_EVENTS = {
-  NEW_ATTACHMENT: 'NEW_ATTACHMENT',
-  REMOVE: 'ATTACHMENT_REMOVE',
+  newAttachment: 'new_attachment',
+  remove: 'attachment_remove',
 };
 
 export const REQUEST_EVENTS = {
-  NEW_REQUEST: 'NEW_REQUEST',
-  REQUEST_ACCEPTED: 'REQUEST_ACCEPTED',
-  REQUEST_DECLINE: 'REQUEST_DECLINE',
+  newRequest: 'new_request',
+  requestAccepted: 'request_accepted',
+  requestDeclined: 'request_declined',
 };
