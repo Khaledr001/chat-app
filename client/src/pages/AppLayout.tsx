@@ -1,8 +1,13 @@
 import NavBar from "../components/navbar";
 import Title from "../shear/Title";
+import { getSocket } from "../socket/socket";
 import ChatLayout from "./ChatLayout";
 
 const AppLayout = () => {
+  const socket = getSocket();
+
+  console.log(socket.id);
+
   return (
     <>
       <Title

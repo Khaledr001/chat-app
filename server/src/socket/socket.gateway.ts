@@ -22,7 +22,7 @@ import type { User } from 'src/database/schemas/user.schema';
 @Injectable()
 @WebSocketGateway({
   cors: {
-    origin: '*', // In production, replace with your frontend URL
+    origin: 'http://localhost:5173', // In production, replace with your frontend URL
     methods: ['GET', 'POST'],
     credentials: true, // Allow credentials to be sent with requests
   },

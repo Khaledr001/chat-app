@@ -21,14 +21,17 @@ export const createSocketMiddleware = (
       }
 
       // Remove 'Bearer ' if present
-      const tokenString = token.replace('Bearer ', '');
+      let tokenString = token.replace('Bearer ', '');
+
+      // If token has = then split
+      tokenString = tokenString.replace('jwt=', '');
 
       // Verify the token
       authService
         .verifyToken(tokenString)
         .then((user) => {
           socket.data.user = user;
-          next();
+          return next();
         })
         .catch((error) => {
           next(

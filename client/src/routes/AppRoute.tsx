@@ -1,6 +1,7 @@
 import { type ReactElement, lazy } from "react";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import { PrivateRoute } from "./PrivateRoute";
+import { SocketProvider } from "../socket/socket";
 
 const AppLayout = lazy(() => import("../pages/AppLayout"));
 const Login = lazy(() => import("../pages/Login"));
@@ -15,7 +16,11 @@ const AppRoutes = () => {
   const routes = createBrowserRouter([
     {
       path: "/",
-      element: privateRouteWrapper(<AppLayout />),
+      element: privateRouteWrapper(
+        <SocketProvider>
+          <AppLayout />
+        </SocketProvider>
+      ),
     },
     {
       path: "/login",
