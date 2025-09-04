@@ -1,14 +1,23 @@
 import { LeftSidebar } from "../components/chat/LeftSidebar";
 import RightSidebar from "../components/chat/RightSidebar";
 import { ChatWindow } from "../components/chat/ChatArea";
-import { useChatLayoutContext } from "../contexts/ChatLayoutContext";
 import { AnimatePresence, motion } from "framer-motion";
 import { useEffect, useState } from "react";
+import {
+  setChats,
+  setDetails,
+} from "../redux/reducers/chatLayout.reducer";
+import { useDispatch, useSelector } from "react-redux";
 
 const ChatLayout: React.FC = () => {
-  const { showDetails, setShowDetails, showChats, setShowChats } = useChatLayoutContext();
 
   const [isMobile, setIsMobile] = useState(false);
+
+  const { showDetails, showChats } = useSelector(
+    (state: any) => state.chatLayout
+  );
+
+  const dispatch = useDispatch();
 
   // Check screen size
   useEffect(() => {
@@ -17,23 +26,21 @@ const ChatLayout: React.FC = () => {
     };
 
     checkScreenSize();
-    
+
     if (isMobile) {
-      setShowChats(false);
-      setShowDetails(false);
-    }
-    else {
-      setShowChats(true);
-      setShowDetails(true);
+      dispatch(setDetails(false));
+      dispatch(setChats(false));
+    } else {
+      dispatch(setDetails(true));
+      dispatch(setChats(true));
     }
 
     window.addEventListener("resize", checkScreenSize);
     return () => window.removeEventListener("resize", checkScreenSize);
   }, [isMobile]);
 
-
   return (
-    <div className="flex grow h-screen relative">
+    <div className="flex grow relative">
       {/* Left Sidebar - Chat List */}
       <AnimatePresence>
         {showChats && (

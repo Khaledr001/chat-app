@@ -1,8 +1,9 @@
-import { useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
-import { useNavigate, Link } from "react-router-dom";
 import { LucideCamera } from "lucide-react";
+import { useState } from "react";
+import toast from "react-hot-toast";
+import { Link, useNavigate } from "react-router-dom";
 import default_image from "../../public/image/default_image.png";
+import { registerUser } from "../api/auth.api";
 
 const Signup = () => {
   const [formData, setFormData] = useState({
@@ -13,11 +14,9 @@ const Signup = () => {
     password: "",
     confirmPassword: "",
   });
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [avatar, setAvatar] = useState<string>("");
 
-  const { signup } = useAuth();
   const navigate = useNavigate();
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -42,25 +41,24 @@ const Signup = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
       return;
     }
     setIsLoading(true);
     try {
-      await signup({
+      await registerUser({
         avatar: formData.avatar,
         name: formData.name,
         userName: formData.userName,
         email: formData.email,
         password: formData.password,
       });
+
+      toast.success("Registration successful!");
+
       navigate("/");
-    } catch (error) {
-      setError(
-        error instanceof Error ? error.message : "Failed to create account"
-      );
+    } catch (error: any) {
+      toast.error(error?.message || "Registration failed!");
     } finally {
       setIsLoading(false);
     }
@@ -72,11 +70,7 @@ const Signup = () => {
         <h2 className="text-3xl font-extrabold text-white !mt-5 !mb-8 text-center tracking-tight">
           Sign Up
         </h2>
-        {error && (
-          <div className="bg-red-500/10 border border-red-500 text-red-400 rounded-lg p-3 mb-5 text-sm text-center">
-            {error}
-          </div>
-        )}
+
         <form
           onSubmit={handleSubmit}
           className="flex flex-col gap-6 justify-center items-center">

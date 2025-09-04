@@ -69,7 +69,7 @@ export class AuthController {
     if (file) {
       const finalFile = duplicateImageChecker(file);
       avatar = {
-        url: finalFile.path, 
+        url: finalFile.path,
         type: ATTACHMENT_TYPE.IMAGE,
       };
     }
@@ -92,21 +92,21 @@ export class AuthController {
     } catch (error: any) {
       res.status(error.status || HttpStatus.INTERNAL_SERVER_ERROR).json({
         message: error.message || 'Registration failed',
-      }); 
+      });
     }
   }
 
-  @Get('verifytoken')
   @ApiOperation({ summary: 'Verify user token' })
+  @Get('verifytoken')
   async verifyToken(@Req() req: Request, @Res() res: Response) {
     try {
-      let token = req.headers.authorization || req.headers.Authorization;
-      if (!token || token == undefined) {
+      let token = req.headers?.authorization || req.headers?.Authorization;
+      if (!token || token === undefined || token === 'undefined') {
         token = req.headers.cookie;
         if (typeof token === 'string' && token.includes('jwt=')) {
           token = token.split('jwt=')[1].trim();
         }
-      } else token = token.toString().split('Bearer')[1].trim();
+      } else token = token.toString().trim();
 
       if (!token) {
         throw new UnauthorizedException('No token provided');
@@ -124,5 +124,15 @@ export class AuthController {
         message: error.message || 'Token verification failed',
       });
     }
+  }
+
+  @Post('logout')
+  @ApiOperation({ summary: 'User logout' })
+  logut(@Res() res: Response, @Req() req: Request) {
+    req.user = null;
+    res.clearCookie('jwt', { path: '/' });
+    return res.status(HttpStatus.OK).json({
+      message: 'Logout successful!',
+    });
   }
 }

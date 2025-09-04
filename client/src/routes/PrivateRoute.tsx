@@ -1,32 +1,29 @@
-import { Navigate, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { api } from "../services/api";
-import { useAuth } from "../contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { verifyToken } from "../api/auth.api";
 
 export const PrivateRoute = ({ children }: { children: React.ReactNode }) => {
   const navigate = useNavigate();
-  const [isAuth, setIsAuth] = useState(false);
-
-  const { isAuthenticated } = useAuth;
 
   useEffect(() => {
     // Check if user is already authenticated
     const checkAuth = async () => {
       try {
-        const token = document.cookie.split("=")[1];
-        if (!token)
-          if (token) {
-            api.defaults.headers.common["Authorization"] = `${token}`;
-          }
-        const response = await api.get("/auth/verifytoken");
-        if (response.data?.user) {
-          setIsAuth(true);
+        let token = document.cookie.split("=")[1];
+        if (!token) token = localStorage.getItem("jwt") as string;
+        if (!token) throw new Error("No token found");
 
-          localStorage.setItem("user", JSON.stringify(response.data?.user));
+        const data = await verifyToken();
+
+        if (data) {
+          // User is authenticated
+          console.count("private route");
+
+          console.log("User is authenticated:", data);
         }
-        else navigate("/login");
+
+        navigate("/");
       } catch (error) {
-        setIsAuth(false);
         navigate("/login");
       }
     };

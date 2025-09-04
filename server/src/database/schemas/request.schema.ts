@@ -7,7 +7,7 @@ import { User, USER_MODEL_NAME } from './user.schema';
 export class Request extends Document {
   @Prop({
     type: String,
-    enum: Object.keys(REQUEST_STATUS),
+    enum: REQUEST_STATUS,
     default: REQUEST_STATUS.PENDING,
     required: true,
   })

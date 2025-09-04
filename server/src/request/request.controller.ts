@@ -13,12 +13,13 @@ import {
 import { RequestService } from './request.service';
 import { ApiOperation } from '@nestjs/swagger';
 import { errorResponse, successResponse } from 'src/util/response';
-import { AuthGuard } from 'src/auth/auth.guard';   
+import { AuthGuard } from 'src/auth/auth.guard';
 import { emitEvents } from 'src/util/chat.events';
 import { REQUEST_EVENTS } from 'src/constants/events';
 import { createRequestDto, updateRequestDto } from './dto/request.dto';
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
+import type { Request } from 'express';
 
 @UseGuards(AuthGuard)
 @Controller('request')
@@ -37,7 +38,7 @@ export class RequestController {
       const senderId = req.user._id;
       const request = await this.requestService.createFriendRequest(
         senderId,
-        receiverId,
+        new Types.ObjectId(receiverId),
       );
 
       // Emit Events
@@ -46,12 +47,12 @@ export class RequestController {
       successResponse(res, {
         statusCode: 201,
         data: request,
-        message: `Friend request send to ${senderId}`,
+        message: `Friend request send to`,
       });
     } catch (error) {
       errorResponse(res, {
         statusCode: error.status,
-        message: 'Friend request failed',
+        message: error.message || 'Friend request failed',
       });
     }
   }
@@ -59,12 +60,15 @@ export class RequestController {
   @Put('/:id')
   @ApiOperation({ summary: 'Update a friend request' })
   async updateFriendRequest(
+    @Req() req: Request,
     @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
     @Body(new ValidationPipe({ whitelist: true })) body: updateRequestDto,
     @Res() res,
   ) {
     try {
+      console.log('id', id);
       const updatedRequest = await this.requestService.updateStatus(
+        req.user._id,
         id,
         body.status,
       );
@@ -74,7 +78,7 @@ export class RequestController {
         message: 'Friend request updated successfully!',
       });
     } catch (error) {
-      errorResponse(res, { 
+      errorResponse(res, {
         statusCode: error.status,
         message: 'Friend request update failed',
       });
@@ -87,6 +91,8 @@ export class RequestController {
     try {
       const userId = req.user._id;
       const notifications = await this.requestService.getNotification(userId);
+
+      console.log(notifications);
       successResponse(res, {
         data: { notifications },
         message: 'Notifications retrieved successfully!',

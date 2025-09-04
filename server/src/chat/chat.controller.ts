@@ -87,7 +87,7 @@ export class ChatController {
         `${creator} created a private chat`,
       );
 
-      successResponse(req, {
+      successResponse(res, {
         data: { private: privateChat },
         message: 'Private Chat Created Successfully!',
       });

@@ -1,7 +1,6 @@
-import React from "react";
+import NavBar from "../components/navbar";
 import Title from "../shear/Title";
 import ChatLayout from "./ChatLayout";
-import { ChatLayoutProvider } from "../contexts/ChatLayoutContext";
 
 const AppLayout = () => {
   return (
@@ -10,9 +9,10 @@ const AppLayout = () => {
         title="Chat App"
         description="This is the Chat App with AI feature"
       />
-      <ChatLayoutProvider>
+      <div className="h-screen flex flex-col">
+        <NavBar />
         <ChatLayout />
-      </ChatLayoutProvider>
+      </div>
     </>
   );
 };

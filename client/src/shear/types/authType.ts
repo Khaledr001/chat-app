@@ -11,7 +11,6 @@ export interface IRegisterData {
 export interface IAuthContextType {
   user: IUser | null;
   isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
   signup: (registerData: IRegisterData) => Promise<void>;
   logout: () => Promise<void>;
 }

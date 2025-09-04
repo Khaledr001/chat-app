@@ -1,12 +1,15 @@
 import { useEffect, useState } from "react";
 import type { IUser } from "../../shear/types/userType";
 import { ArrowRightCircle } from "lucide-react";
-import { useChatLayoutContext } from "../../contexts/ChatLayoutContext";
+import { useDispatch, useSelector } from "react-redux";
+import { setDetails } from "../../redux/reducers/chatLayout.reducer";
 
 const RightSidebar = () => {
   const [user, setUser] = useState<IUser | null>(null);
 
-  const { showDetails, setShowDetails } = useChatLayoutContext();
+  const { showDetails } = useSelector((state: any) => state.chatLayout);
+
+  const dispatch = useDispatch()
 
   useEffect(() => {
     const user = localStorage.getItem("user");
@@ -14,7 +17,7 @@ const RightSidebar = () => {
   }, []);
 
   return (
-    <div className="!p-1 w-auto md:w-64 lg:w-96 xl:w-100 bg-base-100 border-l border-base-300 h-screen">
+    <div className="!p-1 w-auto md:w-64 lg:w-96 xl:w-100 bg-base-100 border-l-2 border-base-300 h-full">
       {/* Header */}
       <div className="flex items-center justify-end border-b border-base-300">
         <h3 className="text-xl w-[90%] font-semibold text-center !pt-3 h-[55px]">
@@ -22,7 +25,7 @@ const RightSidebar = () => {
         </h3>
         <button
           onClick={() => {
-            setShowDetails(!showDetails);
+            dispatch(setDetails(!showDetails));
           }}
           className="btn btn-sm btn-circle md:hidden">
           <ArrowRightCircle className="h-6 w-6" />

@@ -15,7 +15,7 @@ export interface IUser {
     type: string;
     _id: string;
   };
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 

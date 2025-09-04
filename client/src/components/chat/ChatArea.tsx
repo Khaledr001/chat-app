@@ -8,16 +8,21 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useChatLayoutContext } from "../../contexts/ChatLayoutContext";
+import { useDispatch, useSelector } from "react-redux";
+import { setChats, setDetails } from "../../redux/reducers/chatLayout.reducer";
 
 export const ChatWindow = () => {
   const [message, setMessage] = useState<string>("");
 
-  const { showDetails, setShowDetails, showChats, setShowChats } =
-    useChatLayoutContext();
+  const { showChats, showDetails } = useSelector(
+    (state: any) => state.chatLayout
+  );
+
+  const dispatch = useDispatch();
 
   const handleInfo = (e: React.MouseEvent) => {
     e.preventDefault();
-    setShowDetails(!showDetails);
+    dispatch(setDetails(!showDetails));
   };
 
   return (
@@ -25,7 +30,7 @@ export const ChatWindow = () => {
       {/* Chat Header */}
       <div className="!p-1 border-b border-base-300 flex items-center justify-between h-[55px]">
         <button
-          onClick={() => setShowChats(!showChats)}
+          onClick={() => dispatch(setChats(!showChats))}
           className="btn btn-ghost btn-circle btn-sm">
           <MessageCircleMore className="h-5 w-5" />
         </button>

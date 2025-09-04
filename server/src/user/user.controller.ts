@@ -10,6 +10,7 @@ import {
   Req,
   Res,
   Put,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -80,10 +81,10 @@ export class UserController {
     description: 'List of users that are not friends',
     type: [User],
   })
-  async findNotFriends(@Req() req, @Res() res) {
+  async findNotFriends(@Req() req, @Res() res, @Query('name') name?: string) {
     try {
       const userId = req.user._id;
-      const users = await this.userService.findNotFriends(userId);
+      const users = await this.userService.findNotFriends(userId, name);
       successResponse(res, {
         data: { users },
         message: 'Not friends retrieved successfully!',

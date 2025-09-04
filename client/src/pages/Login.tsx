@@ -1,26 +1,35 @@
 import { useState } from "react";
-import { useAuth } from "../contexts/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
+import toast from "react-hot-toast";
+import { loginUser } from "../api/auth.api";
 
 const Login = () => {
   const [userName, setUserName] = useState("");
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const { login } = useAuth();
+  const [error, setError] = useState<{ message: string } | null>(null);
+
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
     setIsLoading(true);
     try {
-      await login(userName, password);
+      const data = await loginUser({ userName, password });
+      if (!data) {
+        setError({ message: "Login failed. Please check your credentials." });
+        throw new Error("Login failed");
+      }
+
+      setIsLoading(false);
+      console.log(data);
+
+      toast.success("Login successful!");
+
       navigate("/");
     } catch (err: any) {
-      setError(err.response?.data?.message || "Failed to login");
-    } finally {
       setIsLoading(false);
+      toast.error(err.message);
     }
   };
 
@@ -30,11 +39,6 @@ const Login = () => {
         <h2 className="text-3xl font-extrabold text-white !mb-8 text-center tracking-tight">
           Login
         </h2>
-        {error && (
-          <div className="bg-red-500/10 border border-red-500 text-red-400 rounded-lg p-3 mb-5 text-sm text-center">
-            {error}
-          </div>
-        )}
         <form
           onSubmit={handleSubmit}
           className="flex flex-col items-center justify-center gap-7 !p-5">

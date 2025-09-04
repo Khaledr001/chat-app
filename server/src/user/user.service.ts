@@ -20,6 +20,10 @@ import {
   ChatDocument,
 } from 'src/database/schemas/chat.schema';
 import { avatarUploadConfig } from 'src/config/avater-upload.config';
+import {
+  REQUEST_MODEL_NAME,
+  RequestDocument,
+} from 'src/database/schemas/request.schema';
 
 @Injectable()
 export class UserService {
@@ -28,6 +32,8 @@ export class UserService {
     private readonly userModel: Model<UserDocument>,
     @InjectModel(CHAT_MODEL_NAME)
     private readonly chatModel: Model<ChatDocument>,
+    @InjectModel(REQUEST_MODEL_NAME)
+    private readonly requestModel: Model<RequestDocument>,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<Omit<User, 'password'>> {
@@ -99,11 +105,36 @@ export class UserService {
         })
         .lean();
 
-      const users = allUsers.map(({ _id, name, avatar }) => ({
+      const notfriendIds = allUsers.map(({ _id }) => _id);
+
+      const getRequestStatus = await this.requestModel
+        .find({
+          $or: [
+            { sender: { $in: notfriendIds } },
+            { receiver: { $in: notfriendIds } },
+          ],
+        })
+        .lean();
+
+      // Map requests to quickly find status per user
+      const requestMap = new Map<string, string>();
+      getRequestStatus.forEach((req: any) => {
+        const otherUserId =
+          req.sender.toString() === userId.toString()
+            ? req.receiver.toString()
+            : req.sender.toString();
+        requestMap.set(otherUserId, req.status);
+      });
+
+      const users = allUsers.map(({ _id, name, userName, avatar }) => ({
         _id,
         name,
+        userName,
         avatar: avatar?.url,
+        requestStatus: requestMap.get(_id.toString()) || null,
       }));
+
+      console.log(allUsers[0]);
 
       return users;
     } catch (error) {

@@ -1,8 +1,10 @@
 import {
+  BadRequestException,
   HttpException,
   HttpStatus,
   Inject,
   Injectable,
+  NotFoundException,
   Type,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
@@ -61,6 +63,19 @@ export class ChatService {
 
   async createPrivateChat(members: Types.ObjectId[], creator: Types.ObjectId) {
     try {
+      if (!members || members.length !== 2)
+        throw new BadRequestException('Exactly 2 members needed');
+
+      const [users, isChat] = await Promise.all([
+        this.userModel.find({ _id: { $in: members } }),
+        this.chatModel.findOne({
+          members: { $all: members },
+          $expr: { $eq: [{ $size: '$members' }, 2] },
+        }),
+      ]);
+      if (!users) throw new NotFoundException('Members not found!');
+      if (isChat) throw new BadRequestException('Both are already friends!');
+
       const privateChat = new this.chatModel({
         members,
         creator,
@@ -79,7 +94,7 @@ export class ChatService {
         })
         .populate({
           path: 'members',
-          select: 'avatar.url',
+          select: 'name avatar.url',
         })
         .select('name members groupChat')
         .lean();
