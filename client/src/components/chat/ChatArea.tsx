@@ -7,7 +7,6 @@ import {
   Smile,
 } from "lucide-react";
 import { useState } from "react";
-import { useChatLayoutContext } from "../../contexts/ChatLayoutContext";
 import { useDispatch, useSelector } from "react-redux";
 import { setChats, setDetails } from "../../redux/reducers/chatLayout.reducer";
 
