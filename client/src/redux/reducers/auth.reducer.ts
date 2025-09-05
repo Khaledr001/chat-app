@@ -25,7 +25,7 @@ const authSlice = createSlice({
       state.user = action.payload;
       state.isAuthenticated = true;
     },
-    logout: (state) => {
+    unsetUser: (state) => {
       state.user = null;
       state.isAuthenticated = false;
       state.isAdmin = false;
@@ -34,5 +34,5 @@ const authSlice = createSlice({
 });
 
 // 5. Export actions & reducer
-export const { setUser, logout } = authSlice.actions;
+export const { setUser, unsetUser } = authSlice.actions;
 export default authSlice;

@@ -1,16 +1,18 @@
 import { LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../api/auth.api";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
 import { useLazyGetNotFriendsQuery } from "../redux/api/api.rtk";
 import NotFriendCard from "./notFriend";
 import NotificationContant from "./notification";
+import { unsetUser } from "../redux/reducers/auth.reducer";
 
 const NavBar = () => {
   const user = useSelector((state: any) => state.auth.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const [showLogoutModal, setShowLogoutModal] = useState<boolean>(false);
   const [searchValue, setSearchValue] = useState<string>("");
@@ -27,8 +29,10 @@ const NavBar = () => {
       // remove user jwt token
       localStorage.clear();
       document.cookie = "jwt=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";
+      dispatch(unsetUser());
 
       navigate("/login");
+      navigate(0);
     } catch (error: any) {
       toast.error(error?.message || "Logout failed!");
     }

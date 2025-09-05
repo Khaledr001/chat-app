@@ -2,13 +2,12 @@ import { LucideArrowLeftCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { useErrors } from "../../hooks/custom";
 import {
-  useGetAllChatsQuery,
-  useLazyGetNotFriendsQuery,
+  useGetAllChatsQuery
 } from "../../redux/api/api.rtk";
 import { setChats } from "../../redux/reducers/chatLayout.reducer";
-import NotFriendCard from "../notFriend";
 
 export interface Chat {
   _id: string;
@@ -44,26 +43,22 @@ export const LeftSidebar = () => {
   useEffect(() => {
     if (!user?._id) return;
 
-    // const fetchChats = async () => {
-    //   try {
-    //     const { data } = await getAllMyChats(user._id);
-    //     console.log("Fetched chats successfully:", data);
-
-    //     // ✅ set state directly instead of mutating
-    //     setChatList(data?.chats || []);
-    //   } catch (error) {
-    //     console.error("Failed to fetch chats:", error);
-    //   }
-    // };
-    // fetchChats();
-
     if (data) {
-      console.log("Fetched chats successfully:", data);
       setChatList(data?.chats || []);
     }
 
     if (isError) toast.error("Failed to fetch chats");
   }, [data]);
+
+
+  const navigate = useNavigate();
+  
+  // Handle select a chat
+  const handleSelectChat = (chatId: string) => {
+    setSelectedChat(chatId);
+
+    navigate(`/chat/${chatId}`);
+  }
 
   return (
     <div className="!p-1 w-full md:w-70 lg:w-96 xl:w-100 bg-base-100 border-r-2 border-base-300 flex flex-col h-full">
@@ -144,7 +139,7 @@ export const LeftSidebar = () => {
                 return (
                   <div
                     key={chat._id}
-                    onClick={() => setSelectedChat(chat._id)}
+                    onClick={() => handleSelectChat(chat._id)}
                     className={`flex !my-1.5 cursor-pointer rounded-lg transition-colors duration-150
                   ${
                     isSelected

@@ -1,34 +1,78 @@
-import { type ReactElement, lazy } from "react";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
-import { PrivateRoute } from "./PrivateRoute";
+import { type ReactElement, lazy, useEffect, useState } from "react";
+import { createBrowserRouter, Outlet, RouterProvider } from "react-router-dom";
+import ProtectedRoute from "./PrivateRoute";
 import { SocketProvider } from "../socket/socket";
+import { useDispatch, useSelector } from "react-redux";
+import { verifyToken } from "../api/auth.api";
+import { setUser, unsetUser } from "../redux/reducers/auth.reducer";
+import AppLayoutLoader from "../components/loader/skeliton";
 
-const AppLayout = lazy(() => import("../pages/AppLayout"));
+const Home = lazy(() => import("../pages/Home"));
+const Chat = lazy(() => import("../pages/Chat"));
 const Login = lazy(() => import("../pages/Login"));
 const Signup = lazy(() => import("../pages/Signup"));
 const NotFound = lazy(() => import("../pages/NotFound"));
 
-const privateRouteWrapper = (elemtnt: ReactElement): ReactElement => {
-  return <PrivateRoute> {elemtnt} </PrivateRoute>;
-};
-
 const AppRoutes = () => {
+  const [loading, setLoading] = useState(true);
+
+  const user = useSelector((state: any) => state.auth.user);
+
+  const dispatch = useDispatch();
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        setLoading(true);
+        const data = await verifyToken();
+        dispatch(setUser(data.user));
+      } catch (err) {
+        dispatch(unsetUser());
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  if (loading) return <AppLayoutLoader />;
+
   const routes = createBrowserRouter([
     {
       path: "/",
-      element: privateRouteWrapper(
-        <SocketProvider>
-          <AppLayout />
-        </SocketProvider>
+      element: (
+        <ProtectedRoute user={user}>
+          <SocketProvider>
+            <Outlet />
+          </SocketProvider>
+        </ProtectedRoute>
       ),
+      children: [
+        {
+          index: true,
+          element: <Home />,
+        },
+        {
+          path: "chat/:id",
+          element: <Chat />,
+        },
+      ],
     },
     {
       path: "/login",
-      element: <Login />,
+      element: (
+        <ProtectedRoute user={!user} redirect="/">
+          <Login />{" "}
+        </ProtectedRoute>
+      ),
     },
     {
       path: "/signup",
-      element: <Signup />,
+      element: (
+        <ProtectedRoute user={!user} redirect="/login">
+          <Signup />{" "}
+        </ProtectedRoute>
+      ),
     },
     {
       path: "*",

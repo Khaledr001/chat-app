@@ -1,5 +1,5 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { Chat } from "../../components/chat/LeftSidebar";
+import type { Chat } from "../../components/chatLayout/LeftSidebar";
 
 const rtkApi = createApi({
   reducerPath: "api",

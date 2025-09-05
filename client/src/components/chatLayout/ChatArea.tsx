@@ -9,8 +9,13 @@ import {
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { setChats, setDetails } from "../../redux/reducers/chatLayout.reducer";
+import MessageComponent from "../chat/message";
 
-export const ChatWindow = () => {
+interface ChatWindowProps {
+  socket: any;
+}
+
+export const ChatWindow: React.FC<ChatWindowProps> = ({ socket }) => {
   const [message, setMessage] = useState<string>("");
 
   const { showChats, showDetails } = useSelector(
@@ -63,55 +68,7 @@ export const ChatWindow = () => {
         </div>
 
         {/* Messages */}
-        <div className="space-y-4">
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-base-300 rounded-full flex items-center justify-center text-sm">
-              👤
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-semibold text-sm">Harry Maguire</span>
-                <span className="text-xs text-base-content/50">08:34 AM</span>
-              </div>
-              <div className="bg-base-200 rounded-lg p-3 max-w-md">
-                <p className="text-sm">
-                  Hey lads, tough game yesterday. Let's talk about what went
-                  wrong and how we can improve 😊
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-start gap-3">
-            <div className="w-8 h-8 bg-base-300 rounded-full flex items-center justify-center text-sm">
-              👤
-            </div>
-            <div>
-              <div className="flex items-center gap-2 mb-1">
-                <span className="font-semibold text-sm">Bruno Fernandes</span>
-                <span className="text-xs text-base-content/50">08:34 AM</span>
-              </div>
-              <div className="bg-base-200 rounded-lg p-3 max-w-md">
-                <p className="text-sm">
-                  Agreed, Harry 👍. We had some good moments, but we need to be
-                  more clinical in front of the goal 😊
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* System Message */}
-          <div className="flex justify-center my-6">
-            <div className="bg-info/20 text-info-content px-4 py-3 rounded-lg max-w-lg text-center">
-              <p className="text-sm">
-                You need to control the midfield and exploit their defensive
-                weaknesses. Focus on quick passes, maintain structure,
-                creativity. Marcus and Jadon, stretch their defense wide. Use
-                your pace and take on their full backs.
-              </p>
-            </div>
-          </div>
-        </div>
+        <MessageComponent messages={message} />
       </div>
 
       {/* Input Area */}
