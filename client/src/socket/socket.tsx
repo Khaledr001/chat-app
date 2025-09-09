@@ -1,26 +1,41 @@
-import { io, Socket } from "socket.io-client";
+import io, { Socket } from "socket.io-client";
 import { serverUrl } from "../constant/env";
-import { createContext, useContext, useMemo } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  type ReactNode,
+} from "react";
 
-interface SocketContextType {
-  socket: Socket | null;
-  isConnected: boolean;
-  activeUsers: string[];
-}
+type SocketContextType = Socket | null;
 
-const SocketContext = createContext<SocketContextType>({
-  socket: null,
-  isConnected: false,
-  activeUsers: [],
-});
+const SocketContext = createContext<SocketContextType>(null);
 
-const getSocket = () => useContext(SocketContext);
+export const getSocket = () => useContext(SocketContext);
 
-const SocketProvider = ({ children }: any) => {
+export const SocketProvider = ({ children }: { children: ReactNode }) => {
   const socket = useMemo(() => io(serverUrl, { withCredentials: true }), []);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.on("connect", () => {
+      console.log("Socket connected with id:", socket.id);
+    });
+
+    socket.on("disconnect", () => {
+      console.log("Socket disconnected");
+    });
+
+    // cleanup
+    return () => {
+      socket.off("connect");
+      socket.off("disconnect");
+    };
+  }, [socket]);
+
   return (
     <SocketContext.Provider value={socket}>{children}</SocketContext.Provider>
   );
 };
-
-export { SocketProvider, getSocket };

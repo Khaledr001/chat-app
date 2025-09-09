@@ -22,6 +22,7 @@ export class MessageService {
 
   async create(createMessageDto: CreateMessageDto) {
     try {
+      console.log(createMessageDto.chat);
       const chat = await this.chatModel.findById(createMessageDto.chat);
       if (!chat) throw new NotFoundException('Chat not found!');
 
@@ -44,16 +45,17 @@ export class MessageService {
       if (!page || page < 1) page = 1;
       if (!limit || limit < 1) limit = 20;
 
+      console.log(chatId);
       const skip = (page - 1) * limit;
       const [messages, totalDocuments] = await Promise.all([
         this.messageModel
-          .find({ chat: chatId })
+          .find({ chat: chatId.toString() })
           .sort({ createdAt: -1 })
           .skip(skip)
           .limit(limit)
           .populate('sender', 'name avatar')
           .lean(),
-        this.messageModel.countDocuments({ chat: chatId }),
+        this.messageModel.countDocuments({ chat: chatId.toString() }),
       ]);
 
       const totalPages = Math.ceil(totalDocuments / limit) || 0;

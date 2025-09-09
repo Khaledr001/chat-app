@@ -1,5 +1,4 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import type { Chat } from "../../components/chatLayout/LeftSidebar";
 
 const rtkApi = createApi({
   reducerPath: "api",
@@ -15,7 +14,7 @@ const rtkApi = createApi({
     credentials: "include",
   }),
 
-  tagTypes: ["Chat", "User", "Request", "Notification"],
+  tagTypes: ["Chat", "User", "Request", "Notification", "Message"],
 
   endpoints: (builder) => ({
     // Get All Chats
@@ -40,19 +39,17 @@ const rtkApi = createApi({
       }),
 
       invalidatesTags: ["Request"],
-
-      // transformResponse: (response: { data: any }) => response.data,
     }),
 
+    // Get All my notification
     getNotification: builder.query<any, void>({
       query: () => ({
         url: "/request/notification",
       }),
       providesTags: ["Notification"],
-
-      // transformResponse: (response: { data: any }) => response.data,
     }),
 
+    // Friend request accept or reject
     changeRequestStatus: builder.mutation({
       query: (obj: { requestId: string; status: string }) => ({
         url: `/request/${obj.requestId}`,
@@ -60,6 +57,37 @@ const rtkApi = createApi({
         method: "PUT",
       }),
       invalidatesTags: ["Chat", "Notification"],
+    }),
+
+    // Get all message by chatId
+    getAllMessage: builder.query<any, any>({
+      query: ({ chatId, page }) => {
+        let url = `/message/${chatId}`;
+        if (page) url += `?page=${page}`;
+        return url;
+      },
+      providesTags: (result, error, { chatId }) => [
+        { type: "Message", id: chatId },
+      ],
+    }),
+
+    // Get Chat details by chatId
+    getChatDetails: builder.query<any, any>({
+      query: ({ chatId, isPopulated = false }) => {
+        let url = `/chat/details/${chatId}`;
+        if (isPopulated) url += "?isPopulated=true";
+        return url;
+      },
+      providesTags: ["Chat"],
+    }),
+
+    // Send attachments
+    sendAttachments: builder.mutation({
+      query: (data: any) => ({
+        url: "/message",
+        method: "POST",
+        body: data,
+      }),
     }),
   }),
 });
@@ -71,4 +99,7 @@ export const {
   useSendRequestMutation,
   useGetNotificationQuery,
   useChangeRequestStatusMutation,
+  useGetAllMessageQuery,
+  useGetChatDetailsQuery,
+  useSendAttachmentsMutation,
 } = rtkApi;

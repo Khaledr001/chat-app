@@ -2,10 +2,8 @@ import {
   BadRequestException,
   HttpException,
   HttpStatus,
-  Inject,
   Injectable,
   NotFoundException,
-  Type,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model, Types } from 'mongoose';
@@ -15,9 +13,7 @@ import {
   CHAT_MODEL_NAME,
   ChatDocument,
 } from 'src/database/schemas/chat.schema';
-import { Attachment } from 'src/database/schemas/common/attachment.schema';
 import {
-  Message,
   MESSAGE_MODEL_NAME,
   MessageDocument,
 } from 'src/database/schemas/message.schema';
@@ -25,7 +21,6 @@ import {
   USER_MODEL_NAME,
   UserDocument,
 } from 'src/database/schemas/user.schema';
-import { UserService } from 'src/user/user.service';
 import { getOtherMember } from 'src/util/feature';
 
 @Injectable()
@@ -81,6 +76,29 @@ export class ChatService {
         creator,
       });
       return await privateChat.save();
+    } catch (error) {
+      throw new HttpException(error.message, error.status || 500);
+    }
+  }
+
+  async getChatDetailsByChatId(chatId: Types.ObjectId, isPopulate = false) {
+    try {
+      let query = this.chatModel.findById(chatId);
+
+      if (isPopulate) {
+        query = query.populate({
+          path: 'members',
+          select: 'name userName avatar',
+        });
+      }
+
+      const chat = await query.exec();
+
+      if (!chat) {
+        throw new NotFoundException('Chat Not Found!');
+      }
+
+      return chat;
     } catch (error) {
       throw new HttpException(error.message, error.status || 500);
     }

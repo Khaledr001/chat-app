@@ -67,6 +67,35 @@ export class MySocketGateway implements OnGatewayInit {
     this.logger.log(`Client disconnected: ${socket.id}`);
   }
 
+  emitEvents(
+    event: string,
+    recipients: string[], // array of userIds
+    payload: any,
+  ) {
+    try {
+      if (!recipients || recipients.length === 0) return;
+
+      // recipients.map((r) => console.log(r));
+      // Get active socket IDs for recipients
+      const memberSocketIds = this.socketService.getUsersSocketId(recipients);
+
+      if (memberSocketIds.length === 0) {
+        this.logger.warn(`No active sockets for recipients`);
+        return;
+      }
+
+      // Emit event to all connected sockets of recipients
+      this.server.to(memberSocketIds).emit(event, payload);
+      console.log(payload);
+
+      this.logger.log(
+        `Event [${event}] emitted to users: ${recipients.join(', ')}`,
+      );
+    } catch (error) {
+      this.logger.error(`Error emitting event [${event}]: ${error.message}`);
+    }
+  }
+
   @SubscribeMessage(MESSAGE_EVENTS.newMessage) // To receive event
   async handleMessage(
     @ConnectedSocket() socket: Socket,
@@ -87,6 +116,9 @@ export class MySocketGateway implements OnGatewayInit {
       sender: {
         _id: this.user._id.toString(),
         name: this.user.name,
+        avatar: {
+          url: this.user.avatar.url,
+        },
       },
       createdAt: new Date().toISOString(),
     };

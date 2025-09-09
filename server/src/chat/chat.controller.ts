@@ -7,6 +7,7 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   Res,
   UseGuards,
@@ -25,6 +26,7 @@ import {
   LeaveMembersDto,
 } from './dto/chat.dot';
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
+import type { Request, Response } from 'express';
 
 @UseGuards(AuthGuard)
 @Controller('chat')
@@ -94,6 +96,28 @@ export class ChatController {
     } catch (error) {
       const status = typeof error.status === 'number' ? error.status : 500;
       errorResponse(res, { statusCode: status, message: error.message });
+    }
+  }
+
+  @Get('/details/:id')
+  @ApiOperation({ summary: 'Get A Chat Details By ChatId' })
+  async getAChatDetails(
+    @Req() req: Request,
+    @Res() res: Response,
+    @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
+    @Query('isPopulated') isPopulated: boolean,
+  ) {
+    try {
+      const chatDetails = await this.chatService.getChatDetailsByChatId(
+        id,
+        isPopulated,
+      );
+      successResponse(res, {
+        data: chatDetails,
+        message: 'Chat Details Found Succesfully!',
+      });
+    } catch (error) {
+      errorResponse(res, { message: error.message, statusCode: error.status });
     }
   }
 

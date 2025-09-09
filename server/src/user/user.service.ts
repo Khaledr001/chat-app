@@ -134,7 +134,6 @@ export class UserService {
         requestStatus: requestMap.get(_id.toString()) || null,
       }));
 
-      console.log(allUsers[0]);
 
       return users;
     } catch (error) {

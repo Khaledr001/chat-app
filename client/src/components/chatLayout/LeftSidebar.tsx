@@ -2,11 +2,9 @@ import { LucideArrowLeftCircle } from "lucide-react";
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useErrors } from "../../hooks/custom";
-import {
-  useGetAllChatsQuery
-} from "../../redux/api/api.rtk";
+import { useGetAllChatsQuery } from "../../redux/api/api.rtk";
 import { setChats } from "../../redux/reducers/chatLayout.reducer";
 
 export interface Chat {
@@ -20,12 +18,12 @@ export interface Chat {
 export const LeftSidebar = () => {
   const dispatch = useDispatch();
   const showChats = useSelector((state: any) => state.chatLayout.showChats);
-  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  const user = useSelector((state: any) => state.auth.user);
 
   const [activeTab, setActiveTab] = useState<"all" | "personal" | "groups">(
     "all"
   );
-  const [selectedChat, setSelectedChat] = useState<string>("united-family");
+  const [selectedChat, setSelectedChat] = useState<string>("");
   const [searchValue, setSearchValue] = useState<string>("");
 
   const [chatList, setChatList] = useState<Chat[]>([]);
@@ -40,6 +38,13 @@ export const LeftSidebar = () => {
 
   useErrors([{ isError, error }]);
 
+  const { id } = useParams<{ id: string }>(); // top-level hook
+
+  useEffect(() => {
+    console.log("chatId", id);
+    setSelectedChat(id);
+  }, [id]); // depend on `id`
+
   useEffect(() => {
     if (!user?._id) return;
 
@@ -50,15 +55,14 @@ export const LeftSidebar = () => {
     if (isError) toast.error("Failed to fetch chats");
   }, [data]);
 
-
   const navigate = useNavigate();
-  
+
   // Handle select a chat
   const handleSelectChat = (chatId: string) => {
     setSelectedChat(chatId);
 
     navigate(`/chat/${chatId}`);
-  }
+  };
 
   return (
     <div className="!p-1 w-full md:w-70 lg:w-96 xl:w-100 bg-base-100 border-r-2 border-base-300 flex flex-col h-full">

@@ -7,3 +7,16 @@ export interface INotification {
     avatar: string;
   };
 }
+
+export interface IMessage {
+  _id: string;
+  chat: string;
+  sender: {
+    _id: string;
+    name: string;
+    avatar?: { url: string };
+  };
+  content: string;
+  attachments?: any;
+  createdAt: Date;
+}

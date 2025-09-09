@@ -5,18 +5,17 @@ import { ChatWindow } from "../components/chatLayout/ChatArea";
 import RightSidebar from "../components/chatLayout/RightSidebar";
 import { setChats, setDetails } from "../redux/reducers/chatLayout.reducer";
 import AppLayout from "./AppLayout";
+import { useParams } from "react-router-dom";
 
-interface ChatLayoutProps {
-  socket: any;
-}
-
-const Chat: React.FC<ChatLayoutProps> = ({ socket }) => {
+const Chat: React.FC = () => {
   // Chat Layout Settings
   const [isMobile, setIsMobile] = useState(false);
   const { showDetails, showChats } = useSelector(
     (state: any) => state.chatLayout
   );
   const dispatch = useDispatch();
+
+  const { id: chatId } = useParams();
 
   // Check screen size
   useEffect(() => {
@@ -43,7 +42,7 @@ const Chat: React.FC<ChatLayoutProps> = ({ socket }) => {
       {/* Middle - Chat Window */}
       {isMobile && (showDetails || showChats) ? null : (
         <div className="flex-grow min-w-0">
-          <ChatWindow socket={socket} />
+          <ChatWindow chatId={chatId} />
         </div>
       )}
 

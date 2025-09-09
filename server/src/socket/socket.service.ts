@@ -20,7 +20,7 @@ export class SocketService {
   getUsersSocketId(userIds: string[]): string[] {
     return userIds
       .map((id) => {
-        const socketId = this.activeUsers.get(id);
+        const socketId = this.activeUsers.get(id.toString());
         if (socketId) {
           return socketId;
         }

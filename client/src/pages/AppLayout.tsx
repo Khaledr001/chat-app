@@ -10,6 +10,8 @@ const AppLayout = () => (WrapedComponent: any) => {
   return (props: any) => {
     const socket = getSocket();
 
+    console.log(socket);
+
     const { showChats } = useSelector((state: any) => state.chatLayout);
     const [isMobile, setIsMobile] = useState(false);
 

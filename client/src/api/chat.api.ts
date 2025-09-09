@@ -1,4 +1,5 @@
 // src/services/chat.ts
+import { number } from "framer-motion";
 import { api } from "./api";
 
 // --------------------
@@ -17,6 +18,19 @@ export const getAllMyChats = async (userId: string) => {
       "Failed to fetch chats:",
       error.response?.data || error.message
     );
+    throw error;
+  }
+};
+
+export const getAllMessageByChatId = async (chatId: string, page: number) => {
+  try {
+    let url = `/message/${chatId}`;
+    if (page) url += `?page=${page}`;
+    const res = await api.get(url);
+
+    return res.data;
+  } catch (error: any) {
+    console.log("Failed to fetch messages", error.message);
     throw error;
   }
 };

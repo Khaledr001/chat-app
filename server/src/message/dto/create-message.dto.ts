@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsMongoId, IsNotEmpty, IsString } from 'class-validator';
+import { IsMongoId, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { Types } from 'mongoose';
 
 export class CreateMessageDto {
@@ -15,9 +15,9 @@ export class CreateMessageDto {
     example: 'John 68b2bd4398e1e402848c179e',
     description: 'Sender ObjectId',
   })
-  @IsNotEmpty()
+  @IsOptional()
   @IsMongoId()
-  sender: Types.ObjectId;
+  sender?: Types.ObjectId;
 
   @ApiProperty({
     example: 'Hello, how are you?',

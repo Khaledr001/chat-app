@@ -15,6 +15,7 @@ import {
   ValidationPipe,
   Query,
   ParseIntPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { MessageService } from './message.service';
 import { CreateMessageDto } from './dto/create-message.dto';
@@ -30,11 +31,15 @@ import { ATTACHMENT_EVENTS, MESSAGE_EVENTS } from 'src/constants/events';
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import { ApiOperation } from '@nestjs/swagger';
+import { MySocketGateway } from 'src/socket/socket.gateway';
 
 @UseGuards(AuthGuard)
 @Controller('message')
 export class MessageController {
-  constructor(private readonly messageService: MessageService) {}
+  constructor(
+    private readonly messageService: MessageService,
+    private readonly socketGateway: MySocketGateway,
+  ) {}
 
   @Post()
   @UseInterceptors(FilesInterceptor('attachment', 5, attachmentUploadConfig))
@@ -64,23 +69,23 @@ export class MessageController {
         await this.messageService.create(createMessageDto);
 
       // Send message in realtime
-      const messageForRealTime = {
+      const realTimeMessage = {
         ...createMessageDto,
         sender: {
           _id: req.user._id,
           name: req.user.name,
+          avatar: {
+            url: req.user.avatar.url,
+          },
         },
+        createdAt: new Date().toISOString(),
       };
 
       // Emit Event
-      emitEvents(
-        req,
-        ATTACHMENT_EVENTS.newAttachment,
+      this.socketGateway.emitEvents(
+        MESSAGE_EVENTS.received,
         chat.members as string[],
-        {
-          message: messageForRealTime,
-          chatId: createMessageDto.chat,
-        },
+        { realTimeMessage },
       );
 
       // New Message Event alert
@@ -100,8 +105,8 @@ export class MessageController {
     @Req() req,
     @Res() res,
     @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
-    @Query('page', ParseIntPipe) page: number,
-    @Query('limit', ParseIntPipe) limit: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ) {
     try {
       const { messages, totalPages } =
