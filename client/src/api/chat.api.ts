@@ -22,6 +22,15 @@ export const getAllMyChats = async (userId: string) => {
   }
 };
 
+export const getChatDetails = async (chatId: string) => {
+  try {
+    const res = await api.get(`/chat/details/${chatId}?isPopulated=true`);
+    return res.data;
+  } catch (error) {
+    throw error;
+  }
+};
+
 export const getAllMessageByChatId = async (chatId: string, page: number) => {
   try {
     let url = `/message/${chatId}`;

@@ -16,6 +16,7 @@ import { sortMessagesByDate } from "../../util/helper";
 import ChatInput from "../chat/inputArea";
 import MessageComponent from "../chat/message";
 import ChatLoader from "../loader/chatLoader";
+import { serverUrl } from "../../constant/env";
 
 export const ChatWindow = ({ chatId }: { chatId?: string }) => {
   if (!chatId) {
@@ -24,9 +25,7 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
   }
   const socket = getSocket();
 
-  const [IamTyping, setIamTyping] = useState(false);
   const [userTyping, setUserTyping] = useState(false);
-  const typingTimeout = useRef(null);
 
   // const containerRef = useRef(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -35,6 +34,7 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
   const [message, setMessage] = useState<string>("");
   const [page, setPage] = useState<number>(1);
 
+  const { selectedChatDetails } = useSelector((state: any) => state.chat);
   const { showChats, showDetails } = useSelector(
     (state: any) => state.chatLayout
   );
@@ -53,52 +53,6 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
     { chatId, page },
     { skip: !chatId, refetchOnMountOrArgChange: true }
   );
-
-  // const [oldMessagesChank, setOldMessagesChank] = useState<any>({
-  //   messages: [],
-  //   totalPages: 0,
-  // });
-  // // Fetch with Axios whenever chatId or page changes
-  // useEffect(() => {
-  //   if (!chatId) return;
-
-  //   getAllMessageByChatId(chatId, page)
-  //     .then((res) => {
-  //       setOldMessagesChank((prev) => ({
-  //         totalPages: res?.data?.totalPages,
-  //         // 👇 Merge previous and new messages
-  //         messages:
-  //           page === 1
-  //             ? res?.data?.messages
-  //             : [...prev.messages, ...res?.data?.messages],
-  //       }));
-  //     })
-  //     .catch((err) => {
-  //       console.error("Axios fetch error", err);
-  //     });
-  // }, [chatId, page]);
-
-  // const { data: oldMessages, setData: setOldMessages } = useInfiniteScrollTop(
-  //   containerRef,
-  //   oldMessagesChank?.totalPages,
-  //   page,
-  //   setPage,
-  //   oldMessagesChank?.messages
-  // );
-
-  // Use the custom infinite scroll hook
-  // const {
-  //   messages: oldMessages,
-  //   isLoading: messagesLoading,
-  //   error: messagesError,
-  //   hasMore,
-  //   containerRef,
-  //   page,
-  //   resetMessages,
-  // } = useInfiniteScrollMessages({
-  //   chatId,
-  //   fetchMessages: getAllMessageByChatId,
-  // });
 
   // Use the infinite scroll hook
   const {
@@ -144,7 +98,6 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
         if (data.chatId !== chatId) return;
 
         setUserTyping(true);
-        console.log("start - typing", data);
       }
     },
     [chatId]
@@ -156,7 +109,6 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
         if (data.chatId !== chatId) return;
 
         setUserTyping(false);
-        console.log("stop - typing", data);
       }
     },
     [chatId]
@@ -183,7 +135,6 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
   let allMessages = [...oldMessages, ...messageList];
   allMessages = sortMessagesByDate(allMessages);
 
-
   // Scroll to bottom on chat change or initial load
   useEffect(() => {
     if (messagesEndRef.current)
@@ -208,19 +159,40 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
           <MessageCircleMore className="h-5 w-5" />
         </button>
 
-        <div className="flex items-center gap-2 ">
-          <div className="avatar">
-            <div className="w-10 rounded-full">
-              <img src="https://img.daisyui.com/images/profile/demo/idiotsandwich@192.webp" />
+        {selectedChatDetails && (
+          <div className="flex items-center gap-2 ">
+            {selectedChatDetails?.groupChat ? (
+              <div className="avatar-group !-space-x-9">
+                {selectedChatDetails?.avatars.length > 0 &&
+                  selectedChatDetails?.avatars
+                    .slice(0, 3)
+                    .map((avatar: string, index: number) => (
+                      <div className="avatar" key={index}>
+                        <div className="w-11 rounded-full ring ring-base-100 ring-offset-1">
+                          <img
+                            src={`${serverUrl}/${avatar}`}
+                            alt={`Avatar ${index + 1}`}
+                          />
+                        </div>
+                      </div>
+                    ))}
+              </div>
+            ) : (
+              <div className="avatar">
+                <div className="w-11 rounded-full ring ring-base-100 ring-offset-1">
+                  <img
+                    src={`${serverUrl}/${selectedChatDetails?.avatars[0]}`}
+                    alt={selectedChatDetails?.name}
+                  />
+                </div>
+              </div>
+            )}
+            <div>
+              <h3 className="font-semibold">{selectedChatDetails?.name}</h3>
             </div>
           </div>
-          <div>
-            <h3 className="font-semibold">United Family 👹</h3>
-            <p className="text-xs text-base-content/50">
-              Rashford is typing...
-            </p>
-          </div>
-        </div>
+        )}
+
         <div className="flex gap-2">
           <button
             className="btn btn-ghost btn-circle btn-sm"
@@ -266,11 +238,6 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
             handleSendMessage={handleSendMessage}
             members={chatDetails?.data?.data?.members}
             chatId={chatId}
-            IamTyping={IamTyping}
-            setIamTyping={setIamTyping}
-            userTyping={userTyping}
-            setUserTyping={setUserTyping}
-            typingTimeout={typingTimeout}
           />
         )}
       </div>

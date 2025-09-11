@@ -4,6 +4,8 @@ import { MESSAGE_EVENTS } from "../../constant/events";
 
 const initialState = {
   selectedChatId: "",
+  selectedChatDetails:
+    getOrSaveToLocalStorage({ key: "chatDetails", get: true }) || {},
   notificationCount: 0,
   newMessageAlert: getOrSaveToLocalStorage({
     key: MESSAGE_EVENTS.newMessageAlert,
@@ -23,6 +25,10 @@ const chatSlice = createSlice({
   reducers: {
     setSelectedChatId: (state, action: PayloadAction<string>) => {
       state.selectedChatId = action.payload;
+    },
+
+    setSelectedChatDetails: (state, action: PayloadAction<any>) => {
+      state.selectedChatDetails = action.payload;
     },
 
     incrementNotification: (state) => {
@@ -62,6 +68,7 @@ export const {
   setNewMessagesAlert,
   resetNewMessageAlert,
   setSelectedChatId,
+  setSelectedChatDetails,
 } = chatSlice.actions;
 
 export default chatSlice;

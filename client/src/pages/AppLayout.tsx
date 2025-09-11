@@ -21,7 +21,6 @@ const AppLayout = () => (WrapedComponent: any) => {
   return (props: any) => {
     const socket = getSocket();
 
-    console.log(socket);
 
     const { showChats } = useSelector((state: any) => state.chatLayout);
     const { selectedChatId, newMessageAlert } = useSelector(
@@ -30,7 +29,7 @@ const AppLayout = () => (WrapedComponent: any) => {
     const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
-      console.log("new message alart", newMessageAlert);
+      // console.log("new message alart", newMessageAlert);
       getOrSaveToLocalStorage({
         key: MESSAGE_EVENTS.newMessageAlert,
         value: newMessageAlert,

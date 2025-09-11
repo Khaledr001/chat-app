@@ -80,6 +80,7 @@ const rtkApi = createApi({
         return url;
       },
       providesTags: ["Chat"],
+      keepUnusedDataFor: 0,
     }),
 
     // Send attachments

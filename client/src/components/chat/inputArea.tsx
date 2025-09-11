@@ -1,5 +1,5 @@
 import { Send } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { MESSAGE_EVENTS } from "../../constant/events";
 import { getSocket } from "../../socket/socket";
 import FileMenu from "./fileMenu";
@@ -10,25 +10,19 @@ const ChatInput = ({
   handleSendMessage,
   members,
   chatId,
-  IamTyping,
-  setIamTyping,
-  userTyping,
-  setUserTyping,
-  typingTimeout,
 }: {
   message: any;
   setMessage: any;
   handleSendMessage: any;
   members: Array<string>;
   chatId: string;
-  IamTyping: boolean;
-  setIamTyping: any;
-  userTyping: boolean;
-  setUserTyping: any;
-  typingTimeout: any;
 }) => {
   const socket = getSocket();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const [IamTyping, setIamTyping] = useState(false);
+  const typingTimeout = useRef<number | null>(null);
+
 
   const handleMessageChange = (e: any) => {
     setMessage(e.target.value);
@@ -40,7 +34,7 @@ const ChatInput = ({
       setIamTyping(true);
     }
 
-    if(typingTimeout.current) clearTimeout(typingTimeout.current);
+    if (typingTimeout.current) clearTimeout(typingTimeout.current);
 
     typingTimeout.current = setTimeout(() => {
       socket?.emit(MESSAGE_EVENTS.stopTypeing, {

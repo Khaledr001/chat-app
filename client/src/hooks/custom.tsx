@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import type { Socket } from "socket.io-client";
 
 export const useErrors = (
   errors: { isError: boolean; error: any; fallBack?: () => void }[] = []

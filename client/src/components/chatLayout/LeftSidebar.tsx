@@ -8,8 +8,11 @@ import { useGetAllChatsQuery } from "../../redux/api/api.rtk";
 import { setChats } from "../../redux/reducers/chatLayout.reducer";
 import {
   resetNewMessageAlert,
+  setSelectedChatDetails,
   setSelectedChatId,
 } from "../../redux/reducers/chat.reducer";
+import { getOrSaveToLocalStorage } from "../../util/helper";
+import { serverUrl } from "../../constant/env";
 
 export interface Chat {
   _id: string;
@@ -63,11 +66,17 @@ export const LeftSidebar = () => {
   const navigate = useNavigate();
 
   // Handle select a chat
-  const handleSelectChat = (chatId: string) => {
+  const handleSelectChat = (chat: any) => {
+    const chatId = chat._id;
+
+    getOrSaveToLocalStorage({ key: "chatDetails", value: chat });
+
+    console.log("chat details", chat);
     setSelectedChat(chatId);
 
     dispatch(setSelectedChatId(chatId));
     dispatch(resetNewMessageAlert(chatId));
+    dispatch(setSelectedChatDetails(chat));
 
     navigate(`/chat/${chatId}`);
   };
@@ -157,7 +166,7 @@ export const LeftSidebar = () => {
                 return (
                   <div
                     key={chat._id}
-                    onClick={() => handleSelectChat(chat._id)}
+                    onClick={() => handleSelectChat(chat)}
                     className={`flex !my-1.5 cursor-pointer rounded-lg transition-colors duration-150
                   ${
                     isSelected
@@ -172,7 +181,7 @@ export const LeftSidebar = () => {
                           <div className="avatar" key={index}>
                             <div className="w-11 rounded-full ring ring-base-100 ring-offset-1">
                               <img
-                                src={`http://localhost:3100/${avatar}`}
+                                src={`${serverUrl}/${avatar}`}
                                 alt={`Avatar ${index + 1}`}
                               />
                             </div>
@@ -183,7 +192,7 @@ export const LeftSidebar = () => {
                       <div className="avatar">
                         <div className="w-11 rounded-full ring ring-base-100 ring-offset-1">
                           <img
-                            src={`http://localhost:3100/${chat.avatars[0]}`}
+                            src={`${serverUrl}/${chat.avatars[0]}`}
                             alt={chat.name}
                           />
                         </div>
