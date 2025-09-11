@@ -1,4 +1,4 @@
-import { LogOut } from "lucide-react";
+import { LogOut, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { logout } from "../api/auth.api";
@@ -65,7 +65,7 @@ const NavBar = () => {
             {/* Avatar + Info */}
             <div className="flex items-center">
               <div className="avatar !mx-2 !my-3">
-                <div className="ring-primary ring-offset-base-100 w-12 rounded-full ring-1 ring-offset-1">
+                <div className="ring-primary ring-offset-base-100 w-9 sm:w-10 md:w-11 rounded-full ring-1 ring-offset-1">
                   <img
                     src={
                       user?.avatar?.url
@@ -86,9 +86,7 @@ const NavBar = () => {
             </div>
           </div>
         </div>
-        <div className="navbar-center">
-          <a className="btn btn-ghost text-xl !px-5">Chat APP</a>
-        </div>
+
         <div className="navbar-end gap-3">
           <button
             onClick={() =>
@@ -97,20 +95,7 @@ const NavBar = () => {
               )?.showModal()
             }
             className="btn btn-ghost btn-circle">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              className="h-7 w-7"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor">
-              {" "}
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />{" "}
-            </svg>
+            <Search className="w-4 sm:w-5 md:w-6" />
           </button>
 
           {/* Notification Button */}
@@ -125,8 +110,8 @@ const NavBar = () => {
             </div>
             <button
               onClick={() => setShowLogoutModal(true)}
-              className="btn hover:btn-error rounded-full w-10 h-10">
-              <LogOut className="w-12" />
+              className="btn btn-ghost hover:btn-error btn-circle">
+              <LogOut className="w-4 sm:w-5 md:w-6" />
             </button>
           </div>
         </div>

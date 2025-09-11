@@ -10,19 +10,21 @@ const ChatInput = ({
   handleSendMessage,
   members,
   chatId,
+  IamTyping,
+  setIamTyping,
 }: {
   message: any;
   setMessage: any;
   handleSendMessage: any;
   members: Array<string>;
   chatId: string;
+  IamTyping: boolean;
+  setIamTyping: any;
 }) => {
   const socket = getSocket();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
-  const [IamTyping, setIamTyping] = useState(false);
   const typingTimeout = useRef<number | null>(null);
-
 
   const handleMessageChange = (e: any) => {
     setMessage(e.target.value);

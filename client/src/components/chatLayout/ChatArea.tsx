@@ -26,6 +26,7 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
   const socket = getSocket();
 
   const [userTyping, setUserTyping] = useState(false);
+  const [IamTyping, setIamTyping] = useState(false);
 
   // const containerRef = useRef(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -55,13 +56,7 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
   );
 
   // Use the infinite scroll hook
-  const {
-    messages: oldMessages,
-    containerRef,
-    isLoading,
-    error,
-    hasMore,
-  } = useInfiniteScrollMessagesRTK({
+  const { messages: oldMessages, containerRef } = useInfiniteScrollMessagesRTK({
     chatId,
     page,
     setPage,
@@ -126,20 +121,21 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
     dispatch(setDetails(!showDetails));
   };
 
+  let allMessages = [...oldMessages, ...messageList];
+  allMessages = sortMessagesByDate(allMessages);
+  
+  // Scroll to bottom on chat change or initial load
+  useEffect(() => {
+    if (messagesEndRef.current)
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messageList, oldMessagesChank.data]);
+
+
   // Reset state when chatId changes
   useEffect(() => {
     setMessageList([]);
     setMessage("");
   }, [chatId]);
-
-  let allMessages = [...oldMessages, ...messageList];
-  allMessages = sortMessagesByDate(allMessages);
-
-  // Scroll to bottom on chat change or initial load
-  useEffect(() => {
-    if (messagesEndRef.current)
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [allMessages, userTyping]);
 
   if (chatDetails.isLoading) {
     return (
@@ -189,6 +185,12 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
             )}
             <div>
               <h3 className="font-semibold">{selectedChatDetails?.name}</h3>
+              {userTyping && !IamTyping && (
+                <div className="flex text-xs text-base-content/50 justify-center items-center w-full">
+                  {"typing "}
+                  <span className="loading loading-dots loading-xs !mx-1"></span>
+                </div>
+              )}
             </div>
           </div>
         )}
@@ -219,12 +221,6 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
             />
           ))}
 
-        {userTyping && (
-          <div className="flex justify-center w-full">
-            <span className="loading loading-dots loading-md "></span>
-          </div>
-        )}
-
         {/* Invisible div for auto-scrolling to bottom */}
         <div ref={messagesEndRef} />
       </div>
@@ -238,6 +234,8 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
             handleSendMessage={handleSendMessage}
             members={chatDetails?.data?.data?.members}
             chatId={chatId}
+            IamTyping={IamTyping}
+            setIamTyping={setIamTyping}
           />
         )}
       </div>
