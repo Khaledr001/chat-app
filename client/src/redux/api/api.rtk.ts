@@ -69,6 +69,7 @@ const rtkApi = createApi({
       providesTags: (result, error, { chatId }) => [
         { type: "Message", id: chatId },
       ],
+      keepUnusedDataFor: 0,
     }),
 
     // Get Chat details by chatId

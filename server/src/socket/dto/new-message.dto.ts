@@ -14,5 +14,5 @@ export class ChatEventDto {
   @IsOptional()
   @IsArray()
   @IsMongoId({ each: true })
-  members?: Types.ObjectId[];
+  members?: string[];
 }

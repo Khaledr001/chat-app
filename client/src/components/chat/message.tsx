@@ -57,7 +57,7 @@ const MessageComponent = ({ message }: { message: IMessage }) => {
                 <img
                   src={`${serverUrl}/${url}`}
                   alt="attachment"
-                  className="max-w-xs rounded-lg w-20"
+                  className="max-w-xs rounded-lg w-24"
                 />
               )}
 

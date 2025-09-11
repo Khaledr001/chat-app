@@ -1,10 +1,21 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
-import { useSelector } from "react-redux";
+import { useCallback, useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { LeftSidebar } from "../components/chatLayout/LeftSidebar";
 import NavBar from "../components/navbar";
 import Title from "../shear/Title";
 import { getSocket } from "../socket/socket";
+import {
+  incrementNotification,
+  setNewMessagesAlert,
+} from "../redux/reducers/chat.reducer";
+import {
+  CHAT_EVENTS,
+  MESSAGE_EVENTS,
+  REQUEST_EVENTS,
+} from "../constant/events";
+import { useSocketEvents } from "../hooks/custom";
+import { getOrSaveToLocalStorage } from "../util/helper";
 
 const AppLayout = () => (WrapedComponent: any) => {
   return (props: any) => {
@@ -13,7 +24,39 @@ const AppLayout = () => (WrapedComponent: any) => {
     console.log(socket);
 
     const { showChats } = useSelector((state: any) => state.chatLayout);
+    const { selectedChatId, newMessageAlert } = useSelector(
+      (state: any) => state.chat
+    );
     const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+      console.log("new message alart", newMessageAlert);
+      getOrSaveToLocalStorage({
+        key: MESSAGE_EVENTS.newMessageAlert,
+        value: newMessageAlert,
+      });
+    }, [newMessageAlert]);
+
+    const dispatch = useDispatch();
+
+    const newRequestHandler = useCallback(() => {
+      dispatch(incrementNotification());
+    }, []);
+
+    const newMessageAlart = useCallback(
+      (data: any) => {
+        if (selectedChatId === data.chatId) return;
+        dispatch(setNewMessagesAlert(data.chatId));
+      },
+      [selectedChatId, dispatch]
+    );
+
+    const eventHandlers = {
+      [REQUEST_EVENTS.newRequest]: newRequestHandler,
+      [MESSAGE_EVENTS.newMessageAlert]: newMessageAlart,
+    };
+
+    useSocketEvents(socket, eventHandlers);
 
     // Check screen size
     useEffect(() => {

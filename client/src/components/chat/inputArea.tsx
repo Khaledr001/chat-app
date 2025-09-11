@@ -1,9 +1,56 @@
-import { Mic, Paperclip, Send, Smile } from "lucide-react";
-import { useState, useRef, useEffect } from "react";
+import { Send } from "lucide-react";
+import { useEffect, useRef } from "react";
+import { MESSAGE_EVENTS } from "../../constant/events";
+import { getSocket } from "../../socket/socket";
 import FileMenu from "./fileMenu";
 
-const ChatInput = ({ message, setMessage, handleSendMessage }) => {
+const ChatInput = ({
+  message,
+  setMessage,
+  handleSendMessage,
+  members,
+  chatId,
+  IamTyping,
+  setIamTyping,
+  userTyping,
+  setUserTyping,
+  typingTimeout,
+}: {
+  message: any;
+  setMessage: any;
+  handleSendMessage: any;
+  members: Array<string>;
+  chatId: string;
+  IamTyping: boolean;
+  setIamTyping: any;
+  userTyping: boolean;
+  setUserTyping: any;
+  typingTimeout: any;
+}) => {
+  const socket = getSocket();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  const handleMessageChange = (e: any) => {
+    setMessage(e.target.value);
+    if (!IamTyping) {
+      socket?.emit(MESSAGE_EVENTS.startTypeing, {
+        chatId,
+        members,
+      });
+      setIamTyping(true);
+    }
+
+    if(typingTimeout.current) clearTimeout(typingTimeout.current);
+
+    typingTimeout.current = setTimeout(() => {
+      socket?.emit(MESSAGE_EVENTS.stopTypeing, {
+        chatId,
+        members,
+      });
+
+      setIamTyping(false);
+    }, 2000);
+  };
 
   // Adjust height as user types
   useEffect(() => {
@@ -29,7 +76,7 @@ const ChatInput = ({ message, setMessage, handleSendMessage }) => {
         placeholder="Type a message..."
         className="input input-bordered rounded-2xl !px-4 !py-1  input-info focus:outline-none focus:ring-0 focus:border-info/60 flex-1 resize-none overflow-auto max-h-[60px] min-h-9 leading-[1.5] "
         value={message}
-        onChange={(e) => setMessage(e.target.value)}
+        onChange={(e) => handleMessageChange(e)}
         rows={1}
         onKeyDown={(e) => {
           if (e.key === "Enter" && !e.shiftKey) {
@@ -38,12 +85,12 @@ const ChatInput = ({ message, setMessage, handleSendMessage }) => {
           }
         }}
       />
-      <button type="button" className="btn btn-ghost btn-circle btn-sm">
+      {/* <button type="button" className="btn btn-ghost btn-circle btn-sm">
         <Smile className="h-5 w-5" />
       </button>
       <button type="button" className="btn btn-ghost btn-circle btn-sm">
         <Mic className="h-5 w-5" />
-      </button>
+      </button> */}
       <button type="submit" className="btn btn-primary btn-circle btn-sm">
         <Send className="h-5 w-5" />
       </button>

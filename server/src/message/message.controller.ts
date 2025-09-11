@@ -89,9 +89,13 @@ export class MessageController {
       );
 
       // New Message Event alert
-      emitEvents(req, MESSAGE_EVENTS.newMessage, chat.members as string[], {
-        chatId: createMessageDto.chat,
-      });
+      this.socketGateway.emitEvents(
+        MESSAGE_EVENTS.newMessageAlert,
+        chat.members as string[],
+        {
+          chatId: createMessageDto.chat,
+        },
+      );
 
       successResponse(res, { statusCode: 201, data: message });
     } catch (error) {

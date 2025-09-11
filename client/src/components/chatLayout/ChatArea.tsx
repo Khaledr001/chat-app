@@ -2,7 +2,7 @@ import { Info, MessageCircleMore } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import { ATTACHMENT_EVENTS, MESSAGE_EVENTS } from "../../constant/events";
+import { MESSAGE_EVENTS } from "../../constant/events";
 import { useErrors, useSocketEvents } from "../../hooks/custom";
 import { useInfiniteScrollMessagesRTK } from "../../hooks/infiniteSchrolToTop";
 import {
@@ -23,6 +23,10 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
     chatId = id;
   }
   const socket = getSocket();
+
+  const [IamTyping, setIamTyping] = useState(false);
+  const [userTyping, setUserTyping] = useState(false);
+  const typingTimeout = useRef(null);
 
   // const containerRef = useRef(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -125,7 +129,7 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
     setMessage("");
   };
 
-  const newMessageHandler = useCallback(
+  const newMessageListner = useCallback(
     (data: any) => {
       // Only add message if it belongs to the current chat
       if (data.realTimeMessage?.chat === chatId) {
@@ -134,15 +138,34 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
     },
     [chatId]
   );
-  // const newAttachmentHandler = useCallback((data: any) => {
-  //   if (data) {
-  //     setMessage((prev) => [...prev, data.message]);
-  //   }
-  // });
+  const startTypeingListner = useCallback(
+    (data: any) => {
+      if (data) {
+        if (data.chatId !== chatId) return;
+
+        setUserTyping(true);
+        console.log("start - typing", data);
+      }
+    },
+    [chatId]
+  );
+
+  const stopTypeingListner = useCallback(
+    (data: any) => {
+      if (data) {
+        if (data.chatId !== chatId) return;
+
+        setUserTyping(false);
+        console.log("stop - typing", data);
+      }
+    },
+    [chatId]
+  );
 
   const eventHandler = {
-    [MESSAGE_EVENTS.received]: newMessageHandler,
-    // [ATTACHMENT_EVENTS.newAttachment]: newAttachmentHandler,
+    [MESSAGE_EVENTS.received]: newMessageListner,
+    [MESSAGE_EVENTS.startTypeing]: startTypeingListner,
+    [MESSAGE_EVENTS.stopTypeing]: stopTypeingListner,
   };
   useSocketEvents(socket, eventHandler);
 
@@ -150,60 +173,22 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
     e.preventDefault();
     dispatch(setDetails(!showDetails));
   };
+
   // Reset state when chatId changes
   useEffect(() => {
-    // Clear real-time messages when switching chats
     setMessageList([]);
-    // Reset page to 1 for new chat
-    // setPage(1);
-    // Clear input message
     setMessage("");
-
-    // setOldMessages([]);
   }, [chatId]);
+
   let allMessages = [...oldMessages, ...messageList];
   allMessages = sortMessagesByDate(allMessages);
-  console.log("allmessage length", allMessages.length);
 
-  // Scroll to bottom when new messages are added (not on infinite scroll)
-  const [shouldScrollToBottom, setShouldScrollToBottom] = useState(true);
-  const [isUserScrolling, setIsUserScrolling] = useState(false);
-
-  // Track if user is scrolling
-  const handleScroll = useCallback(() => {
-    if (!containerRef.current) return;
-
-    const container = containerRef.current as HTMLDivElement;
-    const isAtBottom =
-      container.scrollHeight - container.scrollTop - container.clientHeight <
-      100;
-
-    setShouldScrollToBottom(isAtBottom);
-    setIsUserScrolling(true);
-
-    // Reset scrolling flag after a delay
-    setTimeout(() => setIsUserScrolling(false), 150);
-  }, []);
-
-  // Auto-scroll to bottom for new messages
-  useEffect(() => {
-    // Scroll to bottom when:
-    // 1. New message is sent/received and user is at bottom
-    // 2. Chat changes
-    // 3. Initial load
-    if (shouldScrollToBottom && !isUserScrolling && messageList.length > 0) {
-      setTimeout(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-      }, 50);
-    }
-  }, [messageList.length, shouldScrollToBottom, isUserScrolling]);
 
   // Scroll to bottom on chat change or initial load
   useEffect(() => {
-    setTimeout(() => {
-      messagesEndRef.current?.scrollIntoView({ behavior: "auto" });
-    }, 100);
-  }, [chatId]);
+    if (messagesEndRef.current)
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [allMessages, userTyping]);
 
   if (chatDetails.isLoading) {
     return (
@@ -248,7 +233,6 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
       {/* Messages Area */}
       <div
         ref={containerRef}
-        onScroll={handleScroll}
         className="flex-1 overflow-y-auto p-4 max-h-[calc(94vh-115px)]">
         <div className="text-center mb-6">
           <span className="badge badge-neutral">Today</span>
@@ -263,17 +247,32 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
             />
           ))}
 
+        {userTyping && (
+          <div className="flex justify-center w-full">
+            <span className="loading loading-dots loading-md "></span>
+          </div>
+        )}
+
         {/* Invisible div for auto-scrolling to bottom */}
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input Area */}
       <div className="p-4 border-t border-base-300">
-        <ChatInput
-          message={message}
-          setMessage={setMessage}
-          handleSendMessage={handleSendMessage}
-        />
+        {chatId && (
+          <ChatInput
+            message={message}
+            setMessage={setMessage}
+            handleSendMessage={handleSendMessage}
+            members={chatDetails?.data?.data?.members}
+            chatId={chatId}
+            IamTyping={IamTyping}
+            setIamTyping={setIamTyping}
+            userTyping={userTyping}
+            setUserTyping={setUserTyping}
+            typingTimeout={typingTimeout}
+          />
+        )}
       </div>
     </div>
   );

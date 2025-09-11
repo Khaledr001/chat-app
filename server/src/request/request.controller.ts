@@ -20,11 +20,15 @@ import { createRequestDto, updateRequestDto } from './dto/request.dto';
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
 import type { Request } from 'express';
+import { MySocketGateway } from 'src/socket/socket.gateway';
 
 @UseGuards(AuthGuard)
 @Controller('request')
 export class RequestController {
-  constructor(private readonly requestService: RequestService) {}
+  constructor(
+    private readonly requestService: RequestService,
+    private readonly socketGateway: MySocketGateway,
+  ) {}
 
   @Post()
   @ApiOperation({ summary: 'Create a friend request' })
@@ -42,7 +46,10 @@ export class RequestController {
       );
 
       // Emit Events
-      emitEvents(res, REQUEST_EVENTS.newRequest, [receiverId]);
+      // emitEvents(res, REQUEST_EVENTS.newRequest, [receiverId]);
+      this.socketGateway.emitEvents(REQUEST_EVENTS.newRequest, [
+        receiverId.toString(),
+      ]);
 
       successResponse(res, {
         statusCode: 201,

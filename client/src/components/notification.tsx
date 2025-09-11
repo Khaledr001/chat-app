@@ -6,11 +6,24 @@ import {
 } from "../redux/api/api.rtk";
 import type { INotification } from "../shear/types/others.types";
 import { serverUrl } from "../constant/env";
-import { Check, X } from "lucide-react";
+import {
+  Bell,
+  BellDot,
+  BellElectric,
+  BellIcon,
+  BellMinusIcon,
+  BellRing,
+  Check,
+  LucideBell,
+  X,
+} from "lucide-react";
 import { REQUEST_STATUS } from "../constant/misc";
+import { useDispatch, useSelector } from "react-redux";
+import { resetNotification } from "../redux/reducers/chat.reducer";
 
 const NotificationContant = () => {
   const [contant, setContant] = useState<INotification[] | null>(null);
+  const { notificationCount } = useSelector((state: any) => state.chat);
 
   const {
     data,
@@ -48,10 +61,16 @@ const NotificationContant = () => {
     } catch (error) {}
   };
 
+  const dispatch = useDispatch();
+  const handleOnclick = () => {
+    dispatch(resetNotification());
+  };
+
   return (
-    <div className="dropdown dropdown-end">
+    <div onClick={handleOnclick} className="dropdown dropdown-end">
       <button tabIndex={0} role="button" className="btn btn-ghost btn-circle">
         <div className="indicator">
+          {/* <Bell /> */}
           <svg
             xmlns="http://www.w3.org/2000/svg"
             className="h-7 w-7"
@@ -66,9 +85,11 @@ const NotificationContant = () => {
               d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
             />{" "}
           </svg>
-          <span className="badge badge-xs badge-primary indicator-item w-5 h-5 text-[16px]">
-            {contant?.length}
-          </span>
+          {notificationCount !== 0 && (
+            <span className="badge badge-xs badge-error indicator-item w-5 h-5 text-[16px]">
+              {notificationCount}
+            </span>
+          )}
         </div>
       </button>
 

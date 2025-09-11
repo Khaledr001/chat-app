@@ -6,6 +6,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { useErrors } from "../../hooks/custom";
 import { useGetAllChatsQuery } from "../../redux/api/api.rtk";
 import { setChats } from "../../redux/reducers/chatLayout.reducer";
+import {
+  resetNewMessageAlert,
+  setSelectedChatId,
+} from "../../redux/reducers/chat.reducer";
 
 export interface Chat {
   _id: string;
@@ -19,6 +23,7 @@ export const LeftSidebar = () => {
   const dispatch = useDispatch();
   const showChats = useSelector((state: any) => state.chatLayout.showChats);
   const user = useSelector((state: any) => state.auth.user);
+  const { newMessageAlert } = useSelector((state: any) => state.chat);
 
   const [activeTab, setActiveTab] = useState<"all" | "personal" | "groups">(
     "all"
@@ -42,7 +47,7 @@ export const LeftSidebar = () => {
 
   useEffect(() => {
     console.log("chatId", id);
-    setSelectedChat(id);
+    setSelectedChat(id ?? "");
   }, [id]); // depend on `id`
 
   useEffect(() => {
@@ -60,6 +65,9 @@ export const LeftSidebar = () => {
   // Handle select a chat
   const handleSelectChat = (chatId: string) => {
     setSelectedChat(chatId);
+
+    dispatch(setSelectedChatId(chatId));
+    dispatch(resetNewMessageAlert(chatId));
 
     navigate(`/chat/${chatId}`);
   };
@@ -140,6 +148,12 @@ export const LeftSidebar = () => {
             {chatList.length > 0 ? (
               chatList?.map((chat: Chat) => {
                 const isSelected = selectedChat === chat._id;
+                const index = newMessageAlert.findIndex(
+                  (item: any) => item.chatId === chat._id.toString()
+                );
+                let newMessageCount = 0;
+                if (index !== -1)
+                  newMessageCount = newMessageAlert[index].count;
                 return (
                   <div
                     key={chat._id}
@@ -179,7 +193,11 @@ export const LeftSidebar = () => {
                     <div className="flex-1 !px-1 ml-3 min-w-0">
                       <div className="flex items-center justify-between">
                         <p className="font-semibold text-sm">{chat.name}</p>
-                        <span className="text-xs text-base-content/50">{}</span>
+                        {newMessageCount !== 0 && (
+                          <span className="text-md badge badge-error !rounded-full w-5 h-5 font-semibold">
+                            {newMessageCount}
+                          </span>
+                        )}
                       </div>
                       <p className="text-sm text-base-content/60 truncate">
                         {}

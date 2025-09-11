@@ -70,7 +70,7 @@ export class MySocketGateway implements OnGatewayInit {
   emitEvents(
     event: string,
     recipients: string[], // array of userIds
-    payload: any,
+    payload?: any,
   ) {
     try {
       if (!recipients || recipients.length === 0) return;
@@ -105,9 +105,9 @@ export class MySocketGateway implements OnGatewayInit {
 
     console.log('Message received:', payload);
 
-    const memberSocketIds = this.socketService.getUsersSocketId([
-      this.user._id.toString(),
-    ]);
+    const memberSocketIds = this.socketService.getUsersSocketId(
+      payload?.members ?? [],
+    );
 
     // RealTime Message
     const realTimeMessage = {
@@ -135,12 +135,39 @@ export class MySocketGateway implements OnGatewayInit {
       console.error('Error creating message:', error.message);
     });
 
+    // Emit Events
+
     this.server.emit(MESSAGE_EVENTS.received, {
       realTimeMessage,
     });
 
-    this.server.to(memberSocketIds).emit(CHAT_EVENTS.alert, {
+    this.server.to(memberSocketIds).emit(MESSAGE_EVENTS.newMessageAlert, {
       chatId: payload?.chat,
     });
+  }
+
+  @SubscribeMessage(MESSAGE_EVENTS.startTypeing)
+  startTyping(@ConnectedSocket() socket: Socket, @MessageBody() payload) {
+    const membersSocketId = this.socketService.getUsersSocketId(
+      payload.members,
+    );
+    console.log('start - typing', payload.chatId);
+
+    this.server
+      .to(membersSocketId)
+      .emit(MESSAGE_EVENTS.startTypeing, { chatId: payload.chatId });
+  }
+
+  @SubscribeMessage(MESSAGE_EVENTS.stopTypeing)
+  stopTyping(@ConnectedSocket() socket: Socket, @MessageBody() payload) {
+    const membersSocketId = this.socketService.getUsersSocketId(
+      payload.members,
+    );
+
+    console.log('stop - typing', payload.chatId);
+
+    this.server
+      .to(membersSocketId)
+      .emit(MESSAGE_EVENTS.stopTypeing, { chatId: payload.chatId });
   }
 }

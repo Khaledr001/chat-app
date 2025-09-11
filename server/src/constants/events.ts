@@ -8,6 +8,9 @@ export const CHAT_EVENTS = {
 
 export const MESSAGE_EVENTS = {
   newMessage: 'new_message',
+  startTypeing: 'start_typing',
+  stopTypeing: 'stop_typing',
+  newMessageAlert: 'new_message_alert',
   sent: 'message_sent',
   received: 'message_received',
   delivered: 'message_delivered',
