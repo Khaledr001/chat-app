@@ -24,6 +24,20 @@ const rtkApi = createApi({
       transformResponse: (response: any) => response.data,
     }),
 
+    // Get All Private Chats
+    getAllPrivateChats: builder.query<any, string>({
+      query: (userId) => `/chat/private/${userId}`,
+      providesTags: ["Chat"],
+      transformResponse: (response: any) => response.data,
+    }),
+    
+    // Get All Group Chats
+    getAllGroupChats: builder.query<any, string>({
+      query: (userId) => `/chat/group/${userId}`,
+      providesTags: ["Chat"],
+      transformResponse: (response: any) => response.data,
+    }),
+
     // Get Not Friends
     getNotFriends: builder.query<any, string>({
       query: (name) => `/user/notfriends?name=${name}`,
@@ -97,6 +111,8 @@ const rtkApi = createApi({
 export default rtkApi;
 export const {
   useGetAllChatsQuery,
+  useGetAllPrivateChatsQuery,
+  useGetAllGroupChatsQuery,
   useLazyGetNotFriendsQuery,
   useSendRequestMutation,
   useGetNotificationQuery,

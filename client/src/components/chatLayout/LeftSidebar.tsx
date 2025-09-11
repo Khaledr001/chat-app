@@ -4,7 +4,11 @@ import toast from "react-hot-toast";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { useErrors } from "../../hooks/custom";
-import { useGetAllChatsQuery } from "../../redux/api/api.rtk";
+import {
+  useGetAllChatsQuery,
+  useGetAllGroupChatsQuery,
+  useGetAllPrivateChatsQuery,
+} from "../../redux/api/api.rtk";
 import { setChats } from "../../redux/reducers/chatLayout.reducer";
 import {
   resetNewMessageAlert,
@@ -40,11 +44,33 @@ export const LeftSidebar = () => {
     e.preventDefault();
   };
 
-  const { data, isLoading, isError, error, refetch } = useGetAllChatsQuery(
-    user._id
-  );
+  const {
+    data: allChats,
+    isError: isAllChatsError,
+    error: allChatsError,
+  } = useGetAllChatsQuery(user._id);
 
-  useErrors([{ isError, error }]);
+  const {
+    data: privateChats,
+    isError: isPrivateChatError,
+    error: privateChatError,
+  } = useGetAllPrivateChatsQuery(user._id, {
+    skip: activeTab === "personal",
+  });
+
+  const {
+    data: groupChats,
+    isError: isGroupChatError,
+    error: groupChatError,
+  } = useGetAllGroupChatsQuery(user._id, {
+    skip: activeTab === "groups",
+  });
+
+  useErrors([
+    { isError: isAllChatsError, error: allChatsError },
+    { isError: isPrivateChatError, error: privateChatError },
+    { isError: isGroupChatError, error: groupChatError },
+  ]);
 
   const { id } = useParams<{ id: string }>(); // top-level hook
 
@@ -56,12 +82,11 @@ export const LeftSidebar = () => {
   useEffect(() => {
     if (!user?._id) return;
 
-    if (data) {
-      setChatList(data?.chats || []);
+    if (allChats) {
+      console.log("all data", allChats?.chats);
+      setChatList(allChats?.chats || []);
     }
-
-    if (isError) toast.error("Failed to fetch chats");
-  }, [data]);
+  }, [allChats]);
 
   const navigate = useNavigate();
 
@@ -79,6 +104,27 @@ export const LeftSidebar = () => {
     dispatch(setSelectedChatDetails(chat));
 
     navigate(`/chat/${chatId}`);
+  };
+
+  const handleAllChat = () => {
+    setActiveTab("all");
+    if (allChats) {
+      setChatList(allChats?.chats);
+    }
+  };
+
+  const handlePersonalChat = () => {
+    setActiveTab("personal");
+    if (privateChats) {
+      console.log(privateChats);
+      setChatList(privateChats?.private);
+    }
+  };
+  const handleGroupChat = () => {
+    setActiveTab("groups");
+    if (groupChats) {
+      setChatList(groupChats?.groups);
+    }
   };
 
   return (
@@ -132,21 +178,21 @@ export const LeftSidebar = () => {
             className={`!px-2 !my-2 !h-6 tab ${
               activeTab === "all" ? "tab-active text-primary" : ""
             }`}
-            onClick={() => setActiveTab("all")}>
+            onClick={handleAllChat}>
             All
           </a>
           <a
             className={`!px-2 !my-2 !h-6 tab ${
               activeTab === "personal" ? "tab-active text-primary" : ""
             }`}
-            onClick={() => setActiveTab("personal")}>
+            onClick={handlePersonalChat}>
             Personal
           </a>
           <a
             className={`!px-2 !my-2 !h-6 tab ${
               activeTab === "groups" ? "tab-active text-primary" : ""
             }`}
-            onClick={() => setActiveTab("groups")}>
+            onClick={handleGroupChat}>
             Groups
           </a>
         </div>

@@ -159,11 +159,33 @@ export class ChatService {
         })
         .populate({
           path: 'members',
-          select: 'avatar.url',
+          select: 'name avatar.url',
         })
         .lean();
 
-      return allPrivateChats;
+      const transformChats = allPrivateChats.map(
+        ({ _id, members, groupChat }) => {
+          const otherMember = getOtherMember(members, member);
+
+          return {
+            _id,
+            groupChat,
+            name: otherMember?.name,
+            avatars: [otherMember?.avatar?.url ?? ''],
+            members: (members as { _id: Types.ObjectId }[]).reduce(
+              (prev: Types.ObjectId[], curr: { _id: Types.ObjectId }) => {
+                if (curr._id.toString() !== member.toString()) {
+                  prev.push(curr._id);
+                }
+                return prev;
+              },
+              [] as Types.ObjectId[],
+            ),
+          };
+        },
+      );
+
+      return transformChats;
     } catch (error) {
       throw new HttpException(error.message, error.status || 500);
     }
@@ -180,7 +202,7 @@ export class ChatService {
           path: 'members',
           select: 'avatar.url',
         })
-        .select('name members')
+        .select('name members groupChat')
         .lean();
 
       const transformeGroups = allGroupChats.map(
@@ -192,6 +214,15 @@ export class ChatService {
             avatars: (members as { avatar: { url: string } }[])
               .slice(0, 3)
               .map(({ avatar }) => avatar.url ?? ''),
+            members: (members as { _id: Types.ObjectId }[]).reduce(
+              (prev: Types.ObjectId[], curr: { _id: Types.ObjectId }) => {
+                if (curr._id.toString() !== member.toString()) {
+                  prev.push(curr._id);
+                }
+                return prev;
+              },
+              [] as Types.ObjectId[],
+            ),
           };
         },
       );
