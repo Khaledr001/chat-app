@@ -1,5 +1,3 @@
-// src/services/chat.ts
-import { number } from "framer-motion";
 import { api } from "./api";
 
 // --------------------

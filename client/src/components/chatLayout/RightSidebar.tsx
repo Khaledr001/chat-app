@@ -75,7 +75,7 @@ const RightSidebar = () => {
                     member={member}
                     isCreator={chatDetails?.creator === member?._id}
                     isMe={member?._id === user?._id}
-                    isGroupChat={member?.isGroupChat === true}
+                    isGroupChat={chatDetails?.groupChat}
                   />
                 ))}
               </div>

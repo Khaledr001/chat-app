@@ -63,10 +63,15 @@ export class UserService {
     return newUser;
   }
 
-  async findAll(): Promise<Omit<User, 'password'>[]> {
-    const users = await this.userModel.find().select('-password').lean().exec();
-
-    return users as any as Omit<User, 'password'>[];
+  async findAll(name = ''): Promise<Omit<User, 'password'>[]> {
+    try {
+      const allUsers = await this.userModel
+        .find({ name: { $regex: name || '', $options: 'i' } })
+        .lean();
+      return allUsers;
+    } catch (error: any) {
+      throw new HttpException('User Not Found!', error.status || 400);
+    }
   }
 
   async findOne(
@@ -85,6 +90,30 @@ export class UserService {
     }
 
     return user as any as Omit<User, 'password'>;
+  }
+
+  async findFriends(userId: Types.ObjectId, name?: string): Promise<any[]> {
+    try {
+      const myChats = await this.chatModel.find({
+        groupChat: false,
+        members: userId,
+      });
+
+      const friendIds = myChats
+        .flatMap(({ members }: any) => members)
+        .filter((id) => id !== userId);
+
+      const allUsers = await this.userModel
+        .find({
+          _id: { $in: friendIds },
+          name: { $regex: name || '', $options: 'i' },
+        })
+        .lean();
+
+      return allUsers;
+    } catch (error) {
+      throw new HttpException(error.message, error.status || 500);
+    }
   }
 
   async findNotFriends(userId: Types.ObjectId, name?: string): Promise<any[]> {
@@ -133,7 +162,6 @@ export class UserService {
         avatar: avatar?.url,
         requestStatus: requestMap.get(_id.toString()) || null,
       }));
-
 
       return users;
     } catch (error) {

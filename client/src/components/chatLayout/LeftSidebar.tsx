@@ -28,8 +28,9 @@ export interface Chat {
 
 export const LeftSidebar = () => {
   const dispatch = useDispatch();
-  const showChats = useSelector((state: any) => state.chatLayout.showChats);
+  const chatLayout = useSelector((state: any) => state.chatLayout);
   const user = useSelector((state: any) => state.auth.user);
+  const misc = useSelector((state: any) => state.misc);
   const { newMessageAlert } = useSelector((state: any) => state.chat);
 
   const [activeTab, setActiveTab] = useState<"all" | "personal" | "groups">(
@@ -99,6 +100,8 @@ export const LeftSidebar = () => {
     console.log("chat details", chat);
     setSelectedChat(chatId);
 
+    if (misc.isMobile) dispatch(setChats(!chatLayout.showChats));
+
     dispatch(setSelectedChatId(chatId));
     dispatch(resetNewMessageAlert(chatId));
     dispatch(setSelectedChatDetails(chat));
@@ -133,7 +136,7 @@ export const LeftSidebar = () => {
       <div className="flex items-center border-b border-base-300 h-[55px]">
         <button
           onClick={() => {
-            dispatch(setChats(!showChats));
+            dispatch(setChats(!chatLayout.showChats));
           }}
           className="btn btn-sm btn-circle md:hidden">
           <LucideArrowLeftCircle className="h-6 w-6" />
@@ -213,12 +216,8 @@ export const LeftSidebar = () => {
                   <div
                     key={chat._id}
                     onClick={() => handleSelectChat(chat)}
-                    className={`flex !my-1.5 cursor-pointer rounded-lg transition-colors duration-150
-                  ${
-                    isSelected
-                      ? "bg-success/30 shadow-sm"
-                      : "hover:bg-warning/10"
-                  }
+                    className={`flex !p-1  !my-1.5  rounded-lg btn btn-outline btn-info h-fit transition-colors duration-150 items-center
+                  ${isSelected && "bg-success/30 shadow-sm"}
                 `}>
                     {/* Avatars */}
                     {chat.groupChat ? (
@@ -245,7 +244,7 @@ export const LeftSidebar = () => {
                       </div>
                     )}
 
-                    <div className="flex-1 !px-1 ml-3 min-w-0">
+                    <div className="flex-1 !px-2 ml-3 min-w-0">
                       <div className="flex items-center justify-between">
                         <p className="font-semibold text-sm">{chat.name}</p>
                         {newMessageCount !== 0 && (

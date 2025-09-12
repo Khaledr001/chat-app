@@ -1,32 +1,31 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { LeftSidebar } from "../components/chatLayout/LeftSidebar";
-import NavBar from "../components/navbar";
-import Title from "../shear/Title";
-import { getSocket } from "../socket/socket";
+import { LeftSidebar } from "../../components/chatLayout/LeftSidebar";
+import NavBar from "../../components/navbar";
+import Title from "../../shear/Title";
+import { getSocket } from "../../socket/socket";
 import {
   incrementNotification,
   setNewMessagesAlert,
-} from "../redux/reducers/chat.reducer";
+} from "../../redux/reducers/chat.reducer";
 import {
   CHAT_EVENTS,
   MESSAGE_EVENTS,
   REQUEST_EVENTS,
-} from "../constant/events";
-import { useSocketEvents } from "../hooks/custom";
-import { getOrSaveToLocalStorage } from "../util/helper";
+} from "../../constant/events";
+import { useSocketEvents } from "../../hooks/custom";
+import { getOrSaveToLocalStorage } from "../../util/helper";
 
 const AppLayout = () => (WrapedComponent: any) => {
   return (props: any) => {
     const socket = getSocket();
 
-
     const { showChats } = useSelector((state: any) => state.chatLayout);
+    const { isMobile } = useSelector((state: any) => state.misc);
     const { selectedChatId, newMessageAlert } = useSelector(
       (state: any) => state.chat
     );
-    const [isMobile, setIsMobile] = useState(false);
 
     useEffect(() => {
       // console.log("new message alart", newMessageAlert);
@@ -56,18 +55,6 @@ const AppLayout = () => (WrapedComponent: any) => {
     };
 
     useSocketEvents(socket, eventHandlers);
-
-    // Check screen size
-    useEffect(() => {
-      const checkScreenSize = () => {
-        setIsMobile(window.innerWidth < 768); // md breakpoint
-      };
-
-      checkScreenSize();
-
-      window.addEventListener("resize", checkScreenSize);
-      return () => window.removeEventListener("resize", checkScreenSize);
-    }, [isMobile]);
 
     return (
       <>

@@ -36,6 +36,7 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
   const [page, setPage] = useState<number>(1);
 
   const { selectedChatDetails } = useSelector((state: any) => state.chat);
+  const { chatLoader } = useSelector((state: any) => state.misc);
   const { showChats, showDetails } = useSelector(
     (state: any) => state.chatLayout
   );
@@ -123,13 +124,12 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
 
   let allMessages = [...oldMessages, ...messageList];
   allMessages = sortMessagesByDate(allMessages);
-  
+
   // Scroll to bottom on chat change or initial load
   useEffect(() => {
     if (messagesEndRef.current)
       messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messageList, oldMessagesChank.data]);
-
 
   // Reset state when chatId changes
   useEffect(() => {
@@ -137,7 +137,7 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
     setMessage("");
   }, [chatId]);
 
-  if (chatDetails.isLoading) {
+  if (chatDetails.isLoading || chatLoader) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <ChatLoader />
@@ -146,7 +146,7 @@ export const ChatWindow = ({ chatId }: { chatId?: string }) => {
   }
 
   return (
-    <div className="flex-1 flex flex-col bg-base-100 !p-1 h-full">
+    <div className="flex-1 flex flex-col bg-base-100 !p-1.5 h-full">
       {/* Chat Header */}
       <div className="!p-1 border-b border-base-300 flex items-center justify-between h-[55px]">
         <button

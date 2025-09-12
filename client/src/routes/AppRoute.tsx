@@ -5,13 +5,14 @@ import { SocketProvider } from "../socket/socket";
 import { useDispatch, useSelector } from "react-redux";
 import { verifyToken } from "../api/auth.api";
 import { setUser, unsetUser } from "../redux/reducers/auth.reducer";
-import AppLayoutLoader from "../components/loader/skeliton";
+import LayoutLoader from "../components/loader/layoutLoader";
 
 const Home = lazy(() => import("../pages/Home"));
 const Chat = lazy(() => import("../pages/Chat"));
 const Login = lazy(() => import("../pages/Login"));
 const Signup = lazy(() => import("../pages/Signup"));
 const NotFound = lazy(() => import("../pages/NotFound"));
+const Group = lazy(() => import("../pages/Group"));
 
 const AppRoutes = () => {
   const [loading, setLoading] = useState(true);
@@ -35,7 +36,7 @@ const AppRoutes = () => {
     fetchUser();
   }, []);
 
-  if (loading) return <AppLayoutLoader />;
+  if (loading) return <LayoutLoader />;
 
   const routes = createBrowserRouter([
     {
@@ -51,6 +52,10 @@ const AppRoutes = () => {
         {
           index: true,
           element: <Home />,
+        },
+        {
+          path: "group",
+          element: <Group />,
         },
         {
           path: "chat/:id",

@@ -1,13 +1,13 @@
-import { LogOut, Search } from "lucide-react";
+import { LogOut, Search, Users2 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../api/auth.api";
 import toast from "react-hot-toast";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { logout } from "../api/auth.api";
 import { useLazyGetNotFriendsQuery } from "../redux/api/api.rtk";
+import { unsetUser } from "../redux/reducers/auth.reducer";
 import NotFriendCard from "./notFriend";
 import NotificationContant from "./notification";
-import { unsetUser } from "../redux/reducers/auth.reducer";
 
 const NavBar = () => {
   const user = useSelector((state: any) => state.auth.user);
@@ -88,6 +88,23 @@ const NavBar = () => {
         </div>
 
         <div className="navbar-end gap-3">
+          {/* Group Icon */}
+          <div className="tooltip tooltip-bottom">
+            <div className="tooltip-content ">
+              <div className="animate-bounce text-info -rotate-10 font-black">
+                Groups
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                navigate("/group");
+              }}
+              className="btn btn-ghost hover:btn-info btn-circle">
+              <Users2 className="w-4 sm:w-5 md:w-6" />
+            </button>
+          </div>
+
+          {/* Search Icon */}
           <button
             onClick={() =>
               (
@@ -97,14 +114,12 @@ const NavBar = () => {
             className="btn btn-ghost btn-circle">
             <Search className="w-4 sm:w-5 md:w-6" />
           </button>
-
           {/* Notification Button */}
           <NotificationContant />
-
           {/* Logout Button */}
           <div className="tooltip tooltip-bottom">
             <div className="tooltip-content ">
-              <div className="animate-bounce text-orange-400 -rotate-10 text-lg font-black">
+              <div className="animate-bounce text-orange-400 -rotate-10  font-black">
                 LogOut!
               </div>
             </div>

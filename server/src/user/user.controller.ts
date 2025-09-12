@@ -46,9 +46,17 @@ export class UserController {
     description: 'List of all users',
     type: [User],
   })
-  async findAll(): Promise<Omit<User, 'password'>[]> {
-    const users = await this.userService.findAll();
-    return users;
+  async findAll(@Res() res, @Query('name') name?: string) {
+    try {
+      const users = await this.userService.findAll(name);
+      successResponse(res, {
+        statusCode: 200,
+        message: 'User get succfully!',
+        data: users,
+      });
+    } catch (error: any) {
+      errorResponse(res, { statusCode: error.status, message: error?.message });
+    }
   }
 
   @Get('me')
@@ -66,6 +74,28 @@ export class UserController {
       successResponse(res, {
         data: { user: userId },
         message: 'User Retrieved Successfully!',
+      });
+    } catch (error) {
+      errorResponse(res, { statusCode: error.status, message: error.message });
+    }
+  }
+
+  @Get('friends')
+  @ApiOperation({
+    summary: 'Get all users that are not friends with the current user',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of users that are not friends',
+    type: [User],
+  })
+  async findFriends(@Req() req, @Res() res, @Query('name') name?: string) {
+    try {
+      const userId = req.user._id;
+      const users = await this.userService.findFriends(userId, name);
+      successResponse(res, {
+        data: users,
+        message: 'Friends retrieved successfully!',
       });
     } catch (error) {
       errorResponse(res, { statusCode: error.status, message: error.message });

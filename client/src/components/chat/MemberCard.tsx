@@ -15,8 +15,10 @@ const MemberCard = ({
   isMe,
   isGroupChat,
 }: MemberCardProps) => {
+
+  
   return (
-    <div className="flex items-center gap-3 !px-5 !py-1 hover:bg-base-200 rounded-lg">
+    <div className="flex w-full items-center gap-3 !px-5 !py-1 hover:bg-base-200 rounded-lg">
       {member.avatar?.url ? (
         <img
           src={`${serverUrl}/${member.avatar.url}`}

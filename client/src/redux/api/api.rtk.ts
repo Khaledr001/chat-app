@@ -17,6 +17,18 @@ const rtkApi = createApi({
   tagTypes: ["Chat", "User", "Request", "Notification", "Message"],
 
   endpoints: (builder) => ({
+    // Get Users by name
+    getFriends: builder.query<any, string>({
+      query: (name) => `/user/friends?name=${name}`,
+      transformResponse: (response: any) => response.data,
+    }),
+
+    // Get Not Friends
+    getNotFriends: builder.query<any, string>({
+      query: (name) => `/user/notfriends?name=${name}`,
+      transformResponse: (response: any) => response.data,
+    }),
+
     // Get All Chats
     getAllChats: builder.query<any, string>({
       query: (userId) => `/chat/${userId}`,
@@ -30,17 +42,11 @@ const rtkApi = createApi({
       providesTags: ["Chat"],
       transformResponse: (response: any) => response.data,
     }),
-    
+
     // Get All Group Chats
     getAllGroupChats: builder.query<any, string>({
       query: (userId) => `/chat/group/${userId}`,
       providesTags: ["Chat"],
-      transformResponse: (response: any) => response.data,
-    }),
-
-    // Get Not Friends
-    getNotFriends: builder.query<any, string>({
-      query: (name) => `/user/notfriends?name=${name}`,
       transformResponse: (response: any) => response.data,
     }),
 
@@ -105,19 +111,31 @@ const rtkApi = createApi({
         body: data,
       }),
     }),
+
+    // Create a group chat
+    createGroup: builder.mutation({
+      query: (obj: { name: string; members: string[] }) => ({
+        url: "/chat/group",
+        body: { name: obj.name, members: obj.members },
+        method: "POST",
+      }),
+      invalidatesTags: ["Chat", "Notification"],
+    }),
   }),
 });
 
 export default rtkApi;
 export const {
+  useLazyGetFriendsQuery,
+  useLazyGetNotFriendsQuery,
   useGetAllChatsQuery,
   useGetAllPrivateChatsQuery,
   useGetAllGroupChatsQuery,
-  useLazyGetNotFriendsQuery,
   useSendRequestMutation,
   useGetNotificationQuery,
   useChangeRequestStatusMutation,
   useGetAllMessageQuery,
   useGetChatDetailsQuery,
   useSendAttachmentsMutation,
+  useCreateGroupMutation,
 } = rtkApi;

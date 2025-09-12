@@ -1,30 +1,25 @@
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { ChatWindow } from "../components/chatLayout/ChatArea";
 import RightSidebar from "../components/chatLayout/RightSidebar";
 import { setChats, setDetails } from "../redux/reducers/chatLayout.reducer";
-import AppLayout from "./AppLayout";
+import AppLayout from "./Layout/AppLayout";
 import { useParams } from "react-router-dom";
 
 const Chat: React.FC = () => {
   // Chat Layout Settings
-  const [isMobile, setIsMobile] = useState(false);
   const { showDetails, showChats } = useSelector(
     (state: any) => state.chatLayout
   );
+  const { isMobile } = useSelector((state: any) => state.misc);
+
   const dispatch = useDispatch();
 
   const { id: chatId } = useParams();
 
   // Check screen size
   useEffect(() => {
-    const checkScreenSize = () => {
-      setIsMobile(window.innerWidth < 768); // md breakpoint
-    };
-
-    checkScreenSize();
-
     if (isMobile) {
       dispatch(setDetails(false));
       dispatch(setChats(false));
@@ -32,9 +27,6 @@ const Chat: React.FC = () => {
       dispatch(setDetails(true));
       dispatch(setChats(true));
     }
-
-    window.addEventListener("resize", checkScreenSize);
-    return () => window.removeEventListener("resize", checkScreenSize);
   }, [isMobile]);
 
   return (
