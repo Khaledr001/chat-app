@@ -121,6 +121,45 @@ const rtkApi = createApi({
       }),
       invalidatesTags: ["Chat", "Notification"],
     }),
+
+    // Add new member to group
+    addNewMemberToGroup: builder.mutation({
+      query: (obj: { chatId: string; members: string[] }) => ({
+        url: "chat/addmembers",
+        body: { chatId: obj.chatId, members: obj.members },
+        method: "PUT",
+      }),
+      invalidatesTags: ["Chat", "Notification"],
+    }),
+
+    // Remove new member to group
+    removeMemberFromGroup: builder.mutation({
+      query: (obj: { chatId: string; member: string }) => ({
+        url: "chat/removeMembers",
+        body: { chatId: obj.chatId, member: obj.member },
+        method: "PUT",
+      }),
+      invalidatesTags: ["Chat", "Notification"],
+    }),
+
+    // Leave group
+    leaveGroup: builder.mutation({
+      query: (obj: { chatId: string }) => ({
+        url: "chat/leave",
+        body: { chatId: obj.chatId },
+        method: "PUT",
+      }),
+      invalidatesTags: ["Chat", "Notification"],
+    }),
+
+    // Delete a group chat
+    deleteGroup: builder.mutation({
+      query: (obj: { chatId: string }) => ({
+        url: `chat/group/${obj.chatId}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Chat", "Notification"],
+    }),
   }),
 });
 
@@ -138,4 +177,8 @@ export const {
   useGetChatDetailsQuery,
   useSendAttachmentsMutation,
   useCreateGroupMutation,
+  useAddNewMemberToGroupMutation,
+  useRemoveMemberFromGroupMutation,
+  useLeaveGroupMutation,
+  useDeleteGroupMutation,
 } = rtkApi;

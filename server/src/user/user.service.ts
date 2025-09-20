@@ -105,7 +105,7 @@ export class UserService {
 
       const allUsers = await this.userModel
         .find({
-          _id: { $in: friendIds },
+          _id: { $nin: userId, $in: friendIds },
           name: { $regex: name || '', $options: 'i' },
         })
         .lean();
@@ -126,6 +126,8 @@ export class UserService {
       const friendIds = myChats
         .flatMap(({ members }: any) => members)
         .filter((id) => id !== userId);
+
+      friendIds.push(userId);
 
       const allUsers = await this.userModel
         .find({
@@ -155,7 +157,7 @@ export class UserService {
         requestMap.set(otherUserId, req.status);
       });
 
-      const users = allUsers.map(({ _id, name, userName, avatar }) => ({
+      const users = allUsers.map(({ _id, name, userName, avatar }: any) => ({
         _id,
         name,
         userName,

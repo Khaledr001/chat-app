@@ -1,37 +1,34 @@
 import {
-  Controller,
-  Get,
-  Post,
   Body,
-  Patch,
-  Param,
+  Controller,
+  DefaultValuePipe,
   Delete,
-  UseInterceptors,
+  Get,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  Req,
   Res,
   UploadedFiles,
-  Req,
-  BadRequestException,
   UseGuards,
-  ValidationPipe,
-  Query,
-  ParseIntPipe,
-  DefaultValuePipe,
+  UseInterceptors
 } from '@nestjs/common';
-import { MessageService } from './message.service';
+import { ParseObjectIdPipe } from '@nestjs/mongoose';
+import { FilesInterceptor } from '@nestjs/platform-express';
+import { ApiOperation } from '@nestjs/swagger';
+import type { Request, Response } from 'express';
+import { Types } from 'mongoose';
+import { AuthGuard } from 'src/auth/auth.guard';
+import { attachmentUploadConfig } from 'src/config/attachment-upload.config';
+import { MESSAGE_EVENTS } from 'src/constants/events';
+import { MySocketGateway } from 'src/socket/socket.gateway';
+import { duplicateAttachmentChecker } from 'src/util/duplicate-file-checker';
+import { errorResponse, successResponse } from 'src/util/response';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { UpdateMessageDto } from './dto/update-message.dto';
-import { attachmentUploadConfig } from 'src/config/attachment-upload.config';
-import { FilesInterceptor } from '@nestjs/platform-express';
-import { errorResponse, successResponse } from 'src/util/response';
-import type { Request, Response } from 'express';
-import { duplicateAttachmentChecker } from 'src/util/duplicate-file-checker';
-import { AuthGuard } from 'src/auth/auth.guard';
-import { emitEvents } from 'src/util/chat.events';
-import { ATTACHMENT_EVENTS, MESSAGE_EVENTS } from 'src/constants/events';
-import { ParseObjectIdPipe } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
-import { ApiOperation } from '@nestjs/swagger';
-import { MySocketGateway } from 'src/socket/socket.gateway';
+import { MessageService } from './message.service';
 
 @UseGuards(AuthGuard)
 @Controller('message')
@@ -87,7 +84,7 @@ export class MessageController {
         chat.members as string[],
         { realTimeMessage },
       );
-
+ 
       // New Message Event alert
       this.socketGateway.emitEvents(
         MESSAGE_EVENTS.newMessageAlert,

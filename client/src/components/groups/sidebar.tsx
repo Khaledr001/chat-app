@@ -1,24 +1,17 @@
-import { useSelector } from "react-redux";
-import { serverUrl } from "../../constant/env";
-import { getOrSaveToLocalStorage } from "../../util/helper";
-import type { Chat } from "../chatLayout/LeftSidebar";
 import {
-  MailSearchIcon,
-  Search,
-  SearchCheck,
-  SearchX,
-  ServerCrashIcon,
   UserSearch,
-  X,
+  X
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { serverUrl } from "../../constant/env";
+import { useErrors } from "../../hooks/custom";
 import {
   useCreateGroupMutation,
   useLazyGetFriendsQuery,
 } from "../../redux/api/api.rtk";
 import MemberCard from "../chat/MemberCard";
-import toast from "react-hot-toast";
-import { useErrors } from "../../hooks/custom";
+import type { Chat } from "../chatLayout/LeftSidebar";
 
 const GroupSideBar = ({
   chatList,
@@ -29,7 +22,7 @@ const GroupSideBar = ({
   selectedChat: any;
   setSelectedChat: any;
 }) => {
-  const [searchValue, setSearchValue] = useState("");
+  const [searchValue, setSearchValue] = useState<string | null>(null);
   const [users, setUsers] = useState<any | null>(null);
   const [groupName, setGroupName] = useState("");
   const [newMembers, setNewMembers] = useState<any[]>([]);
@@ -49,7 +42,7 @@ const GroupSideBar = ({
   const [
     fetchNotFriends,
     {
-      isLoading: isLoadingNotFriends,
+      isLoading: isNotFriendsLoading,
       isError: friendIsError,
       error: friendError,
     },
@@ -57,16 +50,16 @@ const GroupSideBar = ({
 
   useEffect(() => {
     const timeOutId = setTimeout(() => {
-      console.log("Search Value:", searchValue);
-      fetchNotFriends(searchValue)
-        .then(({ data }: any) => {
-          console.log(searchValue);
-          console.log("Users:", data);
-          setUsers(data);
-        })
-        .catch((error: any) => {
-          console.error("Error fetching not friends:", error);
-        });
+      if (searchValue)
+        fetchNotFriends(searchValue)
+          .then(({ data }: any) => {
+            console.log(searchValue);
+            console.log("Users:", data);
+            setUsers(data);
+          })
+          .catch((error: any) => {
+            console.error("Error fetching not friends:", error);
+          });
     }, 1000);
 
     return () => clearTimeout(timeOutId);
@@ -83,8 +76,8 @@ const GroupSideBar = ({
   ]);
 
   const handleCreateGroup = async () => {
-    if (newMembers?.length < 3 || groupName === "") {
-      toast.error("Please Select Atleast 3 Members!");
+    if (newMembers?.length < 2 || groupName === "") {
+      toast.error("Please Select Atleast 2 Members!");
       return;
     }
     const payload = {
@@ -104,7 +97,7 @@ const GroupSideBar = ({
   };
 
   return (
-    <div className="w-1/3 card bg-base-100 shadow-lg !p-4 overflow-y-auto">
+    <div className="w-full md:w-2/5 card bg-base-100 shadow-lg !p-4 overflow-y-auto">
       <button
         onClick={() => {
           (
@@ -195,7 +188,7 @@ const GroupSideBar = ({
                 <UserSearch className="w-5 md:w-6" />
                 <input
                   type="search"
-                  value={searchValue}
+                  value={searchValue ?? ""}
                   onChange={(e) => setSearchValue(e.target.value)}
                   className=""
                   placeholder="Search"

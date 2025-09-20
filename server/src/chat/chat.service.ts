@@ -5,8 +5,10 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import mongoose, { Model, Types } from 'mongoose';
+import { InjectConnection, InjectModel } from '@nestjs/mongoose';
+import mongoose, { Connection } from 'mongoose';
+import { Model, Types } from 'mongoose';
+import { startSession } from 'mongoose';
 
 import {
   Chat,
@@ -26,6 +28,7 @@ import { getOtherMember } from 'src/util/feature';
 @Injectable()
 export class ChatService {
   constructor(
+    @InjectConnection() private readonly connection: Connection,
     @InjectModel(USER_MODEL_NAME)
     private userModel: Model<UserDocument>,
     @InjectModel(CHAT_MODEL_NAME)
@@ -202,15 +205,16 @@ export class ChatService {
           path: 'members',
           select: 'avatar.url',
         })
-        .select('name members groupChat')
+        .select('name creator members groupChat')
         .lean();
 
       const transformeGroups = allGroupChats.map(
-        ({ _id, name, members, groupChat }) => {
+        ({ _id, name, members, groupChat, creator }) => {
           return {
             _id,
             name,
             groupChat,
+            creator,
             avatars: (members as { avatar: { url: string } }[])
               .slice(0, 3)
               .map(({ avatar }) => avatar.url ?? ''),
@@ -363,11 +367,11 @@ export class ChatService {
         (member: Types.ObjectId) => member.toString() !== memberId.toString(),
       ) as Types.ObjectId[];
 
-      if (remainingMember.length < 3)
-        throw new HttpException(
-          'Cannot leave group chat with less than 3 members',
-          HttpStatus.BAD_REQUEST,
-        );
+      // if (remainingMember.length < 3)
+      //   throw new HttpException(
+      //     'Cannot leave group chat with less than 3 members',
+      //     HttpStatus.BAD_REQUEST,
+      //   );
 
       if ((chat.creator as Types.ObjectId).toString() === memberId.toString()) {
         const randomIndex = Math.floor(Math.random() * remainingMember.length);
@@ -407,11 +411,13 @@ export class ChatService {
 
   // Delete A Group Chat
   async deleteAGroup(chatId: Types.ObjectId, remover: Types.ObjectId) {
-    const session = await mongoose.startSession();
-    session.startTransaction();
+    // const session = await this.connection.startSession();
+    // session.startTransaction();
     try {
+      console.count('deleting');
+
       const [chat, messagesWithAttachments] = await Promise.all([
-        this.chatModel.findById(chatId).populate('attachments').lean(),
+        this.chatModel.findById(chatId).lean(),
         this.messageModel.find({
           chat: chatId,
           attachments: { $exists: true, $ne: [] },
@@ -435,8 +441,8 @@ export class ChatService {
 
       // Delete chat and messages
       await Promise.all([
-        this.chatModel.deleteOne({ _id: chatId }, { session }),
-        this.messageModel.deleteMany({ chat: chatId }, { session }),
+        this.chatModel.deleteOne({ _id: chatId }),
+        this.messageModel.deleteMany({ chat: chatId }),
       ]);
 
       // Get all the attachment url from message model;
@@ -447,11 +453,11 @@ export class ChatService {
 
       // Delete all attachment from 'public/attachments'
 
-      await session.commitTransaction();
+      // await session.commitTransaction();
 
       return chat;
     } catch (error) {
-      await session.abortTransaction();
+      // await session.abortTransaction();
       throw new HttpException(error.message, error.status || 500);
     }
   }

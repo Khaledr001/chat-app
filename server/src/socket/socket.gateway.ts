@@ -86,7 +86,6 @@ export class MySocketGateway implements OnGatewayInit {
 
       // Emit event to all connected sockets of recipients
       this.server.to(memberSocketIds).emit(event, payload);
-      console.log(payload);
 
       this.logger.log(
         `Event [${event}] emitted to users: ${recipients.join(', ')}`,
@@ -151,7 +150,6 @@ export class MySocketGateway implements OnGatewayInit {
     const membersSocketId = this.socketService.getUsersSocketId(
       payload.members,
     );
-    console.log('start - typing', payload.chatId);
 
     this.server
       .to(membersSocketId)
@@ -163,8 +161,6 @@ export class MySocketGateway implements OnGatewayInit {
     const membersSocketId = this.socketService.getUsersSocketId(
       payload.members,
     );
-
-    console.log('stop - typing', payload.chatId);
 
     this.server
       .to(membersSocketId)

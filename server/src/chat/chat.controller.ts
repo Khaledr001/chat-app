@@ -27,11 +27,15 @@ import {
 } from './dto/chat.dot';
 import { ParseObjectIdPipe } from '@nestjs/mongoose';
 import type { Request, Response } from 'express';
+import { MySocketGateway } from 'src/socket/socket.gateway';
 
 @UseGuards(AuthGuard)
 @Controller('chat')
 export class ChatController {
-  constructor(private readonly chatService: ChatService) {}
+  constructor(
+    private readonly chatService: ChatService,
+    private readonly socketGateway: MySocketGateway,
+  ) {}
 
   @Post('group')
   @ApiOperation({ summary: 'Create A New Group Chat' })
@@ -41,11 +45,11 @@ export class ChatController {
     @Body() createGroupChatDto: CreateGroupChatDto,
   ) {
     try {
-      const { name, members } = createGroupChatDto;
+      let { name, members } = createGroupChatDto;
       const creator = req.user._id;
       const groupChat = await this.chatService.createGroupChat(
         name,
-        members,
+        (members = [...members, creator]),
         creator,
       );
 
@@ -193,8 +197,7 @@ export class ChatController {
 
       // Emit Events
 
-      emitEvents(
-        res,
+      this.socketGateway.emitEvents(
         CHAT_EVENTS.alert,
         updatedChat.allUserName,
         `${assigner} added ${updatedChat.allUserName.join(', ')} to group chat`,
@@ -224,8 +227,7 @@ export class ChatController {
 
       // Emit Events
 
-      emitEvents(
-        res,
+      this.socketGateway.emitEvents(
         CHAT_EVENTS.alert,
         chat.members as string[],
         `${remover} removed ${allUserName} from group chat`,
@@ -254,8 +256,7 @@ export class ChatController {
 
       // Emit Events
 
-      emitEvents(
-        res,
+      this.socketGateway.emitEvents(
         CHAT_EVENTS.alert,
         chat.members as string[],
         `${memberName} left the group chat`,
@@ -286,7 +287,7 @@ export class ChatController {
       const updatedChat = await this.chatService.renameGroupChat(id, body.name);
 
       // emit events
-      emitEvents(res, CHAT_EVENTS.refetch, updatedChat.members as string[]);
+      this.socketGateway.emitEvents( CHAT_EVENTS.refetch, updatedChat.members as string[]);
 
       successResponse(res, {
         data: { group: updatedChat },
@@ -299,18 +300,18 @@ export class ChatController {
   }
 
   @ApiOperation({ summary: 'Delete Group Chat' })
-  @Delete('/:id')
+  @Delete('group/:id')
   async DeleteAGroup(
     @Req() req,
     @Res() res,
     @Param('id', ParseObjectIdPipe) id: Types.ObjectId,
   ) {
     try {
+      console.log(id);
       const deletedChat = await this.chatService.deleteAGroup(id, req.user._id);
 
       // emit events
-      emitEvents(
-        res,
+      this.socketGateway.emitEvents(
         CHAT_EVENTS.alert,
         deletedChat.members as string[],
         `A group chat has been deleted`,

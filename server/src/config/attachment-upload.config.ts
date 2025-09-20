@@ -1,8 +1,3 @@
-import { diskStorage } from 'multer';
-import { extname, join } from 'path';
-import { existsSync, mkdirSync } from 'fs';
-import { BadRequestException } from '@nestjs/common';
-import { Request } from 'express';
 
 export const allowedTypes = [
   'image/', // images
